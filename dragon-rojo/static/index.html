@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Dragón Rojo Resto</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#2b0505,#080808 55%,#000);color:#fff;min-height:100vh}
+    header{padding:24px 18px;text-align:center;background:linear-gradient(90deg,#170000,#540000,#170000);border-bottom:2px solid #f4c542;box-shadow:0 0 20px rgba(255,0,0,.35)}
+    header h1{margin:0;color:#ff2d2d;text-shadow:0 0 12px #f00,0 0 20px #f4c542;letter-spacing:1px}
+    header p{margin:8px 0 0;color:#f4c542}
+    .tabs{display:flex;gap:10px;padding:14px;position:sticky;top:0;z-index:10;background:rgba(0,0,0,.95);border-bottom:1px solid rgba(244,197,66,.4);overflow-x:auto}
+    .tabs button,.primary-btn{border:1px solid #f4c542;background:#170000;color:#f4c542;padding:12px 16px;border-radius:14px;cursor:pointer;box-shadow:0 0 10px rgba(244,197,66,.25);font-weight:bold;white-space:nowrap;font-size:14px}
+    .tabs button.active,.primary-btn:hover{background:#b30000;color:#fff;box-shadow:0 0 18px rgba(255,0,0,.75)}
+    .primary-btn:disabled{opacity:.5;cursor:not-allowed}
+    main{padding:18px;max-width:1200px;margin:auto}
+    section{display:none}section.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .card{background:rgba(20,20,20,.92);border:1px solid rgba(244,197,66,.35);border-radius:18px;padding:16px;box-shadow:0 0 18px rgba(255,0,0,.15)}
+    .card h3{color:#f4c542;margin-top:0}
+    .mapa{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:12px}
+    .mesa{aspect-ratio:1;border-radius:18px;border:2px solid #111;color:#fff;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:.2s;font-size:13px}
+    .mesa.libre{background:#0f8f36;box-shadow:0 0 12px #00ff62}
+    .mesa.ocupada{background:#b00000;box-shadow:0 0 12px #ff2020}
+    .mesa.reservada{background:#b87800;box-shadow:0 0 12px #f4c542}
+    .mesa:hover{transform:scale(1.06)}
+    .mesa small{opacity:.8;font-size:11px}
+    label{display:block;margin-top:10px;color:#f4c542;font-size:14px}
+    input,select,textarea{width:100%;padding:11px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;margin-top:5px;font-size:14px}
+    .menu-item{display:flex;gap:12px;align-items:center;margin:10px 0;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:12px}
+    .menu-item img{width:88px;height:68px;object-fit:cover;border-radius:12px;border:1px solid rgba(244,197,66,.5);flex-shrink:0}
+    .menu-item-info{flex:1}
+    .price{color:#f4c542;font-weight:bold}
+    .status{margin-top:12px;padding:12px;border-radius:12px;background:rgba(244,197,66,.12);border:1px solid rgba(244,197,66,.35);font-size:14px}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+    .badge.pendiente{background:#b87800;color:#fff}
+    .badge.preparando{background:#0066cc;color:#fff}
+    .badge.listo{background:#0f8f36;color:#fff}
+    .pedido-card{border-left:4px solid #f4c542;margin-bottom:12px;padding:10px;background:rgba(255,255,255,.04);border-radius:0 12px 12px 0}
+    .pedido-card.cocina{border-left-color:#ff4444}
+    .pedido-card.barra{border-left-color:#4488ff}
+    .qty-control{display:flex;align-items:center;gap:8px;margin-top:6px}
+    .qty-control button{width:30px;height:30px;border-radius:50%;border:1px solid #f4c542;background:#170000;color:#f4c542;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+    .qty-control span{min-width:20px;text-align:center}
+    .carrito-float{position:fixed;bottom:20px;right:20px;background:#b30000;color:#fff;border:2px solid #f4c542;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 0 20px rgba(255,0,0,.5);z-index:20}
+    .carrito-float .count{position:absolute;top:-5px;right:-5px;background:#f4c542;color:#000;border-radius:50%;width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:bold}
+    .carrito-panel{position:fixed;bottom:90px;right:20px;width:340px;max-height:60vh;overflow-y:auto;background:#111;border:1px solid #f4c542;border-radius:18px;padding:16px;z-index:20;box-shadow:0 0 30px rgba(0,0,0,.8);display:none}
+    .carrito-panel.open{display:block}
+    .reserva-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+    .reserva-row button{background:none;border:none;color:#ff4444;cursor:pointer;font-size:18px}
+    .cuenta-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .total-line{display:flex;justify-content:space-between;padding:10px 0;font-size:18px;font-weight:bold;color:#f4c542;border-top:2px solid #f4c542;margin-top:8px}
+    @media(max-width:600px){
+      header h1{font-size:22px}
+      .menu-item{flex-direction:column}
+      .menu-item img{width:100%;height:140px}
+      .carrito-panel{width:calc(100vw - 40px);right:20px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>&#x1F409; El Dragón Rojo Resto</h1>
+    <p>Reservas &middot; Carta digital &middot; Cocina &middot; Barra &middot; Cierre de cuenta</p>
+  </header>
+
+  <nav class="tabs" id="tabsNav"></nav>
+
+  <main>
+    <section id="mapa">
+      <h2>Mapa operativo de mesas</h2>
+      <p>&#x1F7E2; Libre &middot; &#x1F534; Ocupada &middot; &#x1F7E1; Reservada &mdash; Clic para cambiar estado</p>
+      <div class="mapa" id="mesasGrid"></div>
+    </section>
+
+    <section id="reservas">
+      <h2>Reservas del d&iacute;a</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Nueva reserva</h3>
+          <label>Nombre y apellido</label>
+          <input id="resNombre" placeholder="Ej: Luis Mart&iacute;nez" />
+          <label>Tel&eacute;fono</label>
+          <input id="resTel" placeholder="Ej: 11 5555-5555" />
+          <label>Personas</label>
+          <input id="resPersonas" type="number" min="1" max="20" value="2" />
+          <label>Mesa</label>
+          <select id="resMesa"></select>
+          <label>Horario</label>
+          <select id="resHora"></select>
+          <label>Observaciones</label>
+          <textarea id="resObs" placeholder="Cumplea&ntilde;os, silla de beb&eacute;..."></textarea>
+          <br><br>
+          <button class="primary-btn" onclick="crearReserva()">Confirmar reserva</button>
+          <div class="status" id="resStatus">Horarios disponibles: 19:00 a 21:30 cada 30 min.</div>
+        </div>
+        <div class="card">
+          <h3>Reservas confirmadas</h3>
+          <div id="reservasList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="carta">
+      <h2>Carta digital</h2>
+      <div class="grid" id="menuGrid"></div>
+    </section>
+
+    <section id="pedidos">
+      <h2>Monitor de pedidos</h2>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="primary-btn" onclick="filtrarPedidos('todos')" id="filtroTodos">Todos</button>
+        <button class="primary-btn" onclick="filtrarPedidos('cocina')" id="filtroCocina">Cocina</button>
+        <button class="primary-btn" onclick="filtrarPedidos('barra')" id="filtroBarra">Barra</button>
+      </div>
+      <div id="pedidosList"></div>
+    </section>
+
+    <section id="cuenta">
+      <h2>Cierre de cuenta</h2>
+      <div class="card" style="max-width:500px">
+        <label>Mesa</label>
+        <select id="cuentaMesa" onchange="previewCuenta()"></select>
+        <div id="cuentaPreview" style="margin-top:16px"></div>
+        <label>Medio de pago</label>
+        <select id="medioPago">
+          <option>Efectivo</option>
+          <option>Tarjeta</option>
+          <option>Transferencia</option>
+          <option>Mercado Pago</option>
+        </select>
+        <br><br>
+        <button class="primary-btn" onclick="cerrarCuenta()">Cerrar cuenta y liberar mesa</button>
+        <div id="cuentaStatus" class="status"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="carrito-float" onclick="toggleCarrito()" id="carritoBtn" style="display:none">
+    &#x1F6D2;<span class="count" id="carritoCount">0</span>
+  </div>
+  <div class="carrito-panel" id="carritoPanel">
+    <h3 style="color:#f4c542;margin-top:0">Pedido actual</h3>
+    <label>Mesa</label>
+    <select id="carritoMesa"></select>
+    <div id="carritoItems" style="margin-top:12px"></div>
+    <div id="carritoTotal" class="total-line" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="primary-btn" onclick="enviarCarrito('cocina')" style="flex:1">Enviar a Cocina</button>
+      <button class="primary-btn" onclick="enviarCarrito('barra')" style="flex:1">Enviar a Barra</button>
+    </div>
+  </div>
+
+<script>
+const API = '';
+const HORARIOS = ['19:00','19:30','20:00','20:30','21:00','21:30'];
+const TABS = [
+  {id:'mapa', label:'Mapa de mesas'},
+  {id:'reservas', label:'Reservas'},
+  {id:'carta', label:'Carta digital'},
+  {id:'pedidos', label:'Pedidos'},
+  {id:'cuenta', label:'Cerrar cuenta'},
+];
+
+let mesasData = [];
+let menuData = [];
+let carrito = [];
+let pedidosFiltro = 'todos';
+
+// --- Init ---
+function init() {
+  renderTabs();
+  showTab('mapa');
+  loadMesas();
+  loadMenu();
+  loadReservas();
+  loadPedidos();
+  setInterval(loadPedidos, 10000);
+}
+
+function renderTabs() {
+  const nav = document.getElementById('tabsNav');
+  nav.innerHTML = TABS.map(t =>
+    `<button id="tab-${t.id}" onclick="showTab('${t.id}')">${t.label}</button>`
+  ).join('');
+}
+
+function showTab(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if (id === 'pedidos') loadPedidos();
+  if (id === 'reservas') loadReservas();
+}
+
+// --- API helpers ---
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: {'Content-Type': 'application/json'},
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error del servidor');
+  return data;
+}
+
+// --- Mesas ---
+async function loadMesas() {
+  mesasData = await api('/api/mesas');
+  renderMesas();
+  fillMesaSelects();
+}
+
+function renderMesas() {
+  const grid = document.getElementById('mesasGrid');
+  grid.innerHTML = mesasData.map(m => `
+    <div class="mesa ${m.estado}" onclick="toggleMesa(${m.id}, '${m.estado}')">
+      <span>${m.nombre}</span>
+      <small>${m.capacidad}p &middot; ${m.estado}</small>
+    </div>
+  `).join('');
+}
+
+async function toggleMesa(id, estado) {
+  const next = estado === 'libre' ? 'ocupada' : 'libre';
+  await api(`/api/mesas/${id}`, {method:'PATCH', body:{estado: next}});
+  loadMesas();
+}
+
+function fillMesaSelects() {
+  const ids = ['resMesa','cuentaMesa','carritoMesa'];
+  ids.forEach(sid => {
+    const sel = document.getElementById(sid);
+    if (!sel) return;
+    sel.innerHTML = mesasData.map(m =>
+      `<option value="${m.id}">${m.nombre} (${m.capacidad}p) - ${m.estado}</option>`
+    ).join('');
+  });
+  const hora = document.getElementById('resHora');
+  if (hora) hora.innerHTML = HORARIOS.map(h => `<option>${h}</option>`).join('');
+}
+
+// --- Menu ---
+async function loadMenu() {
+  menuData = await api('/api/menu');
+  renderMenu();
+}
+
+function renderMenu() {
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = menuData.map(cat => `
+    <div class="card">
+      <h3>${cat.nombre}</h3>
+      ${cat.items.map(item => `
+        <div class="menu-item">
+          <img src="${item.imagen}" alt="${item.nombre}" loading="lazy" onerror="this.style.display='none'">
+          <div class="menu-item-info">
+            <strong>${item.nombre}</strong><br>
+            <span class="price">$${item.precio.toLocaleString('es-AR')}</span>
+            <div class="qty-control">
+              <button onclick="addToCarrito(${item.id}, '${item.nombre.replace(/'/g,"\\'")}', ${item.precio})">+ Agregar</button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// --- Carrito ---
+function addToCarrito(itemId, nombre, precio) {
+  const existing = carrito.find(c => c.menu_item_id === itemId);
+  if (existing) {
+    existing.cantidad++;
+  } else {
+    carrito.push({menu_item_id: itemId, descripcion: nombre, cantidad: 1, precio_unitario: precio});
+  }
+  updateCarritoUI();
+}
+
+function removeFromCarrito(idx) {
+  carrito[idx].cantidad--;
+  if (carrito[idx].cantidad <= 0) carrito.splice(idx, 1);
+  updateCarritoUI();
+}
+
+function updateCarritoUI() {
+  const btn = document.getElementById('carritoBtn');
+  const count = document.getElementById('carritoCount');
+  const total = carrito.reduce((s, c) => s + c.cantidad, 0);
+  btn.style.display = total > 0 ? 'flex' : 'none';
+  count.textContent = total;
+
+  const container = document.getElementById('carritoItems');
+  const totalLine = document.getElementById('carritoTotal');
+  if (carrito.length === 0) {
+    container.innerHTML = '<p style="opacity:.5">Agregá items desde la carta</p>';
+    totalLine.style.display = 'none';
+    return;
+  }
+  let sum = 0;
+  container.innerHTML = carrito.map((c, i) => {
+    const sub = c.cantidad * c.precio_unitario;
+    sum += sub;
+    return `<div class="cuenta-item">
+      <span>${c.cantidad}x ${c.descripcion}</span>
+      <span>$${sub.toLocaleString('es-AR')} <span style="cursor:pointer;color:#ff4444" onclick="removeFromCarrito(${i})">&#x2716;</span></span>
+    </div>`;
+  }).join('');
+  totalLine.style.display = 'flex';
+  totalLine.innerHTML = `<span>Total</span><span>$${sum.toLocaleString('es-AR')}</span>`;
+}
+
+function toggleCarrito() {
+  document.getElementById('carritoPanel').classList.toggle('open');
+}
+
+async function enviarCarrito(area) {
+  if (carrito.length === 0) return alert('El carrito está vacío');
+  const mesaId = document.getElementById('carritoMesa').value;
+  try {
+    await api('/api/pedidos', {
+      method: 'POST',
+      body: {mesa_id: parseInt(mesaId), area, items: carrito}
+    });
+    carrito = [];
+    updateCarritoUI();
+    document.getElementById('carritoPanel').classList.remove('open');
+    loadMesas();
+    loadPedidos();
+    alert(`Pedido enviado a ${area}`);
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// --- Reservas ---
+async function loadReservas() {
+  const reservas = await api('/api/reservas');
+  const container = document.getElementById('reservasList');
+  if (reservas.length === 0) {
+    container.innerHTML = '<p style="opacity:.5">No hay reservas para hoy.</p>';
+    return;
+  }
+  container.innerHTML = reservas.map(r => `
+    <div class="reserva-row">
+      <div>
+        <strong>${r.horario}</strong> - ${r.nombre}<br>
+        <small>${r.mesa_nombre} &middot; ${r.personas}p ${r.telefono ? '&middot; '+r.telefono : ''}</small>
+        ${r.observaciones ? '<br><small style="opacity:.6">'+r.observaciones+'</small>' : ''}
+      </div>
+      <button onclick="cancelarReserva(${r.id})" title="Cancelar">&#x2716;</button>
+    </div>
+  `).join('');
+}
+
+async function crearReserva() {
+  const nombre = document.getElementById('resNombre').value.trim();
+  if (!nombre) return alert('Ingresá un nombre');
+  try {
+    const r = await api('/api/reservas', {
+      method: 'POST',
+      body: {
+        mesa_id: parseInt(document.getElementById('resMesa').value),
+        nombre,
+        telefono: document.getElementById('resTel').value,
+        personas: parseInt(document.getElementById('resPersonas').value),
+        horario: document.getElementById('resHora').value,
+        observaciones: document.getElementById('resObs').value,
+      }
+    });
+    document.getElementById('resStatus').innerHTML =
+      `&#x2705; Reserva #${r.id} confirmada para <b>${r.nombre}</b> a las ${r.horario}.`;
+    document.getElementById('resNombre').value = '';
+    document.getElementById('resTel').value = '';
+    document.getElementById('resObs').value = '';
+    loadMesas();
+    loadReservas();
+  } catch (e) {
+    document.getElementById('resStatus').innerHTML = `&#x274C; ${e.message}`;
+  }
+}
+
+async function cancelarReserva(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  await api(`/api/reservas/${id}`, {method: 'DELETE'});
+  loadMesas();
+  loadReservas();
+}
+
+// --- Pedidos ---
+async function loadPedidos() {
+  const pedidos = await api('/api/pedidos');
+  renderPedidos(pedidos);
+}
+
+function filtrarPedidos(filtro) {
+  pedidosFiltro = filtro;
+  loadPedidos();
+}
+
+function renderPedidos(pedidos) {
+  const filtered = pedidosFiltro === 'todos' ? pedidos : pedidos.filter(p => p.area === pedidosFiltro);
+  const container = document.getElementById('pedidosList');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="status">Sin pedidos activos.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(p => {
+    const estados = ['pendiente','preparando','listo'];
+    const nextIdx = estados.indexOf(p.estado) + 1;
+    const nextEstado = nextIdx < estados.length ? estados[nextIdx] : 'entregado';
+    const btnLabel = {pendiente:'Preparando',preparando:'Listo',listo:'Entregado'}[p.estado];
+    return `<div class="pedido-card ${p.area}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong>${p.mesa_nombre}</strong> &rarr;
+          <span style="text-transform:uppercase;font-size:13px">${p.area}</span>
+          <span class="badge ${p.estado}">${p.estado}</span>
+        </div>
+        <small style="opacity:.5">${p.created_at}</small>
+      </div>
+      <div style="margin-top:6px">
+        ${p.items.map(i => `<span>${i.cantidad}x ${i.descripcion}</span>`).join(' &middot; ')}
+      </div>
+      ${btnLabel ? `<button class="primary-btn" style="margin-top:8px;padding:8px 14px;font-size:13px"
+        onclick="avanzarPedido(${p.id},'${nextEstado}')">Marcar: ${btnLabel}</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function avanzarPedido(id, estado) {
+  await api(`/api/pedidos/${id}`, {method:'PATCH', body:{estado}});
+  loadPedidos();
+}
+
+// --- Cuenta ---
+async function previewCuenta() {
+  const mesaId = document.getElementById('cuentaMesa').value;
+  try {
+    const data = await api(`/api/cuentas/preview/${mesaId}`);
+    const container = document.getElementById('cuentaPreview');
+    if (data.items.length === 0) {
+      container.innerHTML = '<p style="opacity:.5">No hay consumos pendientes en esta mesa.</p>';
+      return;
+    }
+    container.innerHTML = data.items.map(i =>
+      `<div class="cuenta-item"><span>${i.cantidad}x ${i.descripcion}</span><span>$${i.subtotal.toLocaleString('es-AR')}</span></div>`
+    ).join('') + `<div class="total-line"><span>Total</span><span>$${data.total.toLocaleString('es-AR')}</span></div>`;
+  } catch(e) {
+    document.getElementById('cuentaPreview').innerHTML = '';
+  }
+}
+
+async function cerrarCuenta() {
+  const mesaId = document.getElementById('cuentaMesa').value;
+  const medio = document.getElementById('medioPago').value;
+  try {
+    const c = await api('/api/cuentas', {
+      method: 'POST',
+      body: {mesa_id: parseInt(mesaId), medio_pago: medio}
+    });
+    document.getElementById('cuentaStatus').innerHTML =
+      `&#x1F4B3; Cuenta #${c.id} cerrada. Total: $${c.total.toLocaleString('es-AR')}. Pago: ${c.medio_pago}. Mesa liberada.`;
+    document.getElementById('cuentaPreview').innerHTML = '';
+    loadMesas();
+  } catch(e) {
+    document.getElementById('cuentaStatus').innerHTML = `&#x274C; ${e.message}`;
+  }
+}
+
+// --- Start ---
+init();
+</script>
+</body>
+</html>
