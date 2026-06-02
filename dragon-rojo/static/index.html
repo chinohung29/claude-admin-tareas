@@ -1,478 +1,600 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>El Dragón Rojo Resto</title>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#2b0505,#080808 55%,#000);color:#fff;min-height:100vh}
-    header{padding:24px 18px;text-align:center;background:linear-gradient(90deg,#170000,#540000,#170000);border-bottom:2px solid #f4c542;box-shadow:0 0 20px rgba(255,0,0,.35)}
-    header h1{margin:0;color:#ff2d2d;text-shadow:0 0 12px #f00,0 0 20px #f4c542;letter-spacing:1px}
-    header p{margin:8px 0 0;color:#f4c542}
-    .tabs{display:flex;gap:10px;padding:14px;position:sticky;top:0;z-index:10;background:rgba(0,0,0,.95);border-bottom:1px solid rgba(244,197,66,.4);overflow-x:auto}
-    .tabs button,.primary-btn{border:1px solid #f4c542;background:#170000;color:#f4c542;padding:12px 16px;border-radius:14px;cursor:pointer;box-shadow:0 0 10px rgba(244,197,66,.25);font-weight:bold;white-space:nowrap;font-size:14px}
-    .tabs button.active,.primary-btn:hover{background:#b30000;color:#fff;box-shadow:0 0 18px rgba(255,0,0,.75)}
-    .primary-btn:disabled{opacity:.5;cursor:not-allowed}
-    main{padding:18px;max-width:1200px;margin:auto}
-    section{display:none}section.active{display:block}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
-    .card{background:rgba(20,20,20,.92);border:1px solid rgba(244,197,66,.35);border-radius:18px;padding:16px;box-shadow:0 0 18px rgba(255,0,0,.15)}
-    .card h3{color:#f4c542;margin-top:0}
-    .mapa{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:12px}
-    .mesa{aspect-ratio:1;border-radius:18px;border:2px solid #111;color:#fff;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:.2s;font-size:13px}
-    .mesa.libre{background:#0f8f36;box-shadow:0 0 12px #00ff62}
-    .mesa.ocupada{background:#b00000;box-shadow:0 0 12px #ff2020}
-    .mesa.reservada{background:#b87800;box-shadow:0 0 12px #f4c542}
-    .mesa:hover{transform:scale(1.06)}
-    .mesa small{opacity:.8;font-size:11px}
-    label{display:block;margin-top:10px;color:#f4c542;font-size:14px}
-    input,select,textarea{width:100%;padding:11px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;margin-top:5px;font-size:14px}
-    .menu-item{display:flex;gap:12px;align-items:center;margin:10px 0;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:12px}
-    .menu-item img{width:88px;height:68px;object-fit:cover;border-radius:12px;border:1px solid rgba(244,197,66,.5);flex-shrink:0}
-    .menu-item-info{flex:1}
-    .price{color:#f4c542;font-weight:bold}
-    .status{margin-top:12px;padding:12px;border-radius:12px;background:rgba(244,197,66,.12);border:1px solid rgba(244,197,66,.35);font-size:14px}
-    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-    .badge.pendiente{background:#b87800;color:#fff}
-    .badge.preparando{background:#0066cc;color:#fff}
-    .badge.listo{background:#0f8f36;color:#fff}
-    .pedido-card{border-left:4px solid #f4c542;margin-bottom:12px;padding:10px;background:rgba(255,255,255,.04);border-radius:0 12px 12px 0}
-    .pedido-card.cocina{border-left-color:#ff4444}
-    .pedido-card.barra{border-left-color:#4488ff}
-    .qty-control{display:flex;align-items:center;gap:8px;margin-top:6px}
-    .qty-control button{width:30px;height:30px;border-radius:50%;border:1px solid #f4c542;background:#170000;color:#f4c542;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
-    .qty-control span{min-width:20px;text-align:center}
-    .carrito-float{position:fixed;bottom:20px;right:20px;background:#b30000;color:#fff;border:2px solid #f4c542;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 0 20px rgba(255,0,0,.5);z-index:20}
-    .carrito-float .count{position:absolute;top:-5px;right:-5px;background:#f4c542;color:#000;border-radius:50%;width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:bold}
-    .carrito-panel{position:fixed;bottom:90px;right:20px;width:340px;max-height:60vh;overflow-y:auto;background:#111;border:1px solid #f4c542;border-radius:18px;padding:16px;z-index:20;box-shadow:0 0 30px rgba(0,0,0,.8);display:none}
-    .carrito-panel.open{display:block}
-    .reserva-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
-    .reserva-row button{background:none;border:none;color:#ff4444;cursor:pointer;font-size:18px}
-    .cuenta-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-    .total-line{display:flex;justify-content:space-between;padding:10px 0;font-size:18px;font-weight:bold;color:#f4c542;border-top:2px solid #f4c542;margin-top:8px}
-    @media(max-width:600px){
-      header h1{font-size:22px}
-      .menu-item{flex-direction:column}
-      .menu-item img{width:100%;height:140px}
-      .carrito-panel{width:calc(100vw - 40px);right:20px}
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>El Dragón Rojo - Sistema</title>
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;
+  --red:#c41a1a;--red-glow:rgba(196,26,26,.4);--red-dark:#7a1010;
+  --gold:#d4a844;--gold-dim:rgba(212,168,68,.3);--gold-dark:#8a6e2c;
+  --cream:#e8d5b0;
+  --green:#0f8f36;--green-glow:rgba(15,143,54,.5);
+  --red-mesa:#b00000;--red-mesa-glow:rgba(176,0,0,.5);
+  --orange:#b87800;--orange-glow:rgba(184,120,0,.5);
+  --text:#f0e6d6;--text-dim:rgba(240,230,214,.5);
+  --border:rgba(212,168,68,.25);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:3px}
+
+/* Header */
+.header{background:linear-gradient(90deg,#0d0000,#2a0000 30%,#3d0000 50%,#2a0000 70%,#0d0000);
+  border-bottom:2px solid var(--gold);box-shadow:0 0 30px var(--red-glow);padding:16px 20px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header img{height:56px;border-radius:12px}
+.header-text h1{color:var(--red);font-size:22px;text-shadow:0 0 15px rgba(255,0,0,.4);letter-spacing:1px}
+.header-text p{color:var(--gold);font-size:13px;margin-top:2px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.header-right select{background:var(--bg2);color:var(--gold);border:1px solid var(--gold-dim);
+  padding:8px 12px;border-radius:var(--radius);font-size:13px}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;padding:10px 14px;position:sticky;top:0;z-index:20;
+  background:rgba(10,10,10,.97);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{border:1px solid var(--border);background:var(--bg2);color:var(--gold);
+  padding:10px 16px;border-radius:var(--radius);cursor:pointer;font-weight:600;
+  white-space:nowrap;font-size:13px;transition:.2s}
+.tab:hover{background:var(--red-dark);color:#fff}
+.tab.active{background:var(--red);color:#fff;box-shadow:0 0 14px var(--red-glow);border-color:var(--red)}
+
+/* Layout */
+main{padding:16px;max-width:1400px;margin:auto}
+section{display:none}section.active{display:block}
+h2{color:var(--gold);margin-bottom:14px;font-size:18px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;box-shadow:0 2px 16px rgba(0,0,0,.4)}
+.card h3{color:var(--gold);margin:0 0 12px;font-size:15px;
+  border-bottom:1px solid var(--border);padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+
+/* Buttons */
+.btn{border:1px solid var(--gold);background:var(--bg2);color:var(--gold);
+  padding:10px 16px;border-radius:var(--radius);cursor:pointer;font-weight:600;
+  font-size:13px;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--red);color:#fff;border-color:var(--red);
+  box-shadow:0 0 12px var(--red-glow)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:10px}
+.btn-green{border-color:var(--green);color:var(--green)}
+.btn-green:hover{background:var(--green);color:#fff}
+.btn-danger{border-color:#ff4444;color:#ff4444}
+.btn-danger:hover{background:#cc0000;color:#fff}
+
+/* Form */
+label{display:block;margin-top:10px;color:var(--gold);font-size:13px;font-weight:600}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #333;
+  background:var(--bg);color:var(--text);margin-top:4px;font-size:14px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+
+/* Mesa Map */
+.mapa{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.mesa{aspect-ratio:1;border-radius:var(--radius);border:2px solid rgba(255,255,255,.1);
+  color:#fff;font-weight:700;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;transition:.15s;font-size:13px;position:relative}
+.mesa:hover{transform:scale(1.05);z-index:2}
+.mesa small{opacity:.7;font-size:10px;margin-top:2px}
+.mesa .mozo-tag{position:absolute;bottom:4px;font-size:9px;background:rgba(0,0,0,.6);
+  padding:1px 6px;border-radius:6px;color:var(--cream)}
+.mesa.libre{background:var(--green);box-shadow:0 0 14px var(--green-glow)}
+.mesa.ocupada{background:var(--red-mesa);box-shadow:0 0 14px var(--red-mesa-glow)}
+.mesa.reservada{background:var(--orange);box-shadow:0 0 14px var(--orange-glow)}
+
+/* Mesa detail modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;
+  align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--gold);border-radius:18px;
+  padding:24px;width:90%;max-width:420px;box-shadow:0 0 40px rgba(0,0,0,.8)}
+.modal-close{float:right;background:none;border:none;color:var(--text-dim);
+  font-size:22px;cursor:pointer}
+
+/* Menu */
+.menu-cat{margin-bottom:20px}
+.menu-cat-title{color:var(--red);font-size:16px;font-weight:700;margin-bottom:10px;
+  padding:6px 0;border-bottom:2px solid var(--red-dark)}
+.menu-row{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.menu-row-name{flex:1;font-size:14px}
+.menu-row-price{color:var(--gold);font-weight:700;min-width:80px;text-align:right;margin-right:12px}
+.qty-ctrl{display:flex;align-items:center;gap:4px}
+.qty-ctrl button{width:28px;height:28px;border-radius:50%;border:1px solid var(--gold);
+  background:var(--bg);color:var(--gold);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.15s}
+.qty-ctrl button:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.qty-ctrl span{min-width:22px;text-align:center;font-weight:700;font-size:14px}
+
+/* Pedidos */
+.pedido-card{border-left:4px solid var(--gold);margin-bottom:10px;padding:12px;
+  background:rgba(255,255,255,.03);border-radius:0 var(--radius) var(--radius) 0}
+.pedido-card.cocina{border-left-color:var(--red)}
+.pedido-card.barra{border-left-color:#4488ff}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+.badge.pendiente{background:var(--orange);color:#fff}
+.badge.preparando{background:#0066cc;color:#fff}
+.badge.listo{background:var(--green);color:#fff}
+
+/* Cuenta */
+.cuenta-line{display:flex;justify-content:space-between;padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+.cuenta-total{display:flex;justify-content:space-between;padding:12px 0;
+  font-size:20px;font-weight:700;color:var(--gold);border-top:2px solid var(--gold);margin-top:8px}
+
+/* Carrito flotante */
+.carrito-fab{position:fixed;bottom:20px;right:20px;background:var(--red);color:#fff;
+  border:2px solid var(--gold);border-radius:50%;width:58px;height:58px;
+  display:none;align-items:center;justify-content:center;font-size:22px;
+  cursor:pointer;box-shadow:0 4px 20px var(--red-glow);z-index:30}
+.carrito-fab .cnt{position:absolute;top:-4px;right:-4px;background:var(--gold);
+  color:#000;border-radius:50%;width:22px;height:22px;font-size:12px;
+  display:flex;align-items:center;justify-content:center;font-weight:700}
+.carrito-panel{position:fixed;bottom:88px;right:20px;width:360px;max-height:65vh;
+  overflow-y:auto;background:var(--bg2);border:1px solid var(--gold);
+  border-radius:18px;padding:18px;z-index:30;box-shadow:0 4px 30px rgba(0,0,0,.8);display:none}
+.carrito-panel.open{display:block}
+
+/* Status */
+.status-box{margin-top:10px;padding:10px;border-radius:10px;
+  background:rgba(212,168,68,.08);border:1px solid var(--border);font-size:13px}
+
+/* Reserva row */
+.res-row{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+
+@media(max-width:600px){
+  .header{flex-direction:column;text-align:center}
+  .header-right{margin-left:0;flex-wrap:wrap;justify-content:center}
+  .carrito-panel{width:calc(100% - 32px);right:16px}
+  .mapa{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+}
+</style>
 </head>
 <body>
-  <header>
-    <h1>&#x1F409; El Dragón Rojo Resto</h1>
-    <p>Reservas &middot; Carta digital &middot; Cocina &middot; Barra &middot; Cierre de cuenta</p>
-  </header>
 
-  <nav class="tabs" id="tabsNav"></nav>
-
-  <main>
-    <section id="mapa">
-      <h2>Mapa operativo de mesas</h2>
-      <p>&#x1F7E2; Libre &middot; &#x1F534; Ocupada &middot; &#x1F7E1; Reservada &mdash; Clic para cambiar estado</p>
-      <div class="mapa" id="mesasGrid"></div>
-    </section>
-
-    <section id="reservas">
-      <h2>Reservas del d&iacute;a</h2>
-      <div class="grid">
-        <div class="card">
-          <h3>Nueva reserva</h3>
-          <label>Nombre y apellido</label>
-          <input id="resNombre" placeholder="Ej: Luis Mart&iacute;nez" />
-          <label>Tel&eacute;fono</label>
-          <input id="resTel" placeholder="Ej: 11 5555-5555" />
-          <label>Personas</label>
-          <input id="resPersonas" type="number" min="1" max="20" value="2" />
-          <label>Mesa</label>
-          <select id="resMesa"></select>
-          <label>Horario</label>
-          <select id="resHora"></select>
-          <label>Observaciones</label>
-          <textarea id="resObs" placeholder="Cumplea&ntilde;os, silla de beb&eacute;..."></textarea>
-          <br><br>
-          <button class="primary-btn" onclick="crearReserva()">Confirmar reserva</button>
-          <div class="status" id="resStatus">Horarios disponibles: 19:00 a 21:30 cada 30 min.</div>
-        </div>
-        <div class="card">
-          <h3>Reservas confirmadas</h3>
-          <div id="reservasList"></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="carta">
-      <h2>Carta digital</h2>
-      <div class="grid" id="menuGrid"></div>
-    </section>
-
-    <section id="pedidos">
-      <h2>Monitor de pedidos</h2>
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <button class="primary-btn" onclick="filtrarPedidos('todos')" id="filtroTodos">Todos</button>
-        <button class="primary-btn" onclick="filtrarPedidos('cocina')" id="filtroCocina">Cocina</button>
-        <button class="primary-btn" onclick="filtrarPedidos('barra')" id="filtroBarra">Barra</button>
-      </div>
-      <div id="pedidosList"></div>
-    </section>
-
-    <section id="cuenta">
-      <h2>Cierre de cuenta</h2>
-      <div class="card" style="max-width:500px">
-        <label>Mesa</label>
-        <select id="cuentaMesa" onchange="previewCuenta()"></select>
-        <div id="cuentaPreview" style="margin-top:16px"></div>
-        <label>Medio de pago</label>
-        <select id="medioPago">
-          <option>Efectivo</option>
-          <option>Tarjeta</option>
-          <option>Transferencia</option>
-          <option>Mercado Pago</option>
-        </select>
-        <br><br>
-        <button class="primary-btn" onclick="cerrarCuenta()">Cerrar cuenta y liberar mesa</button>
-        <div id="cuentaStatus" class="status"></div>
-      </div>
-    </section>
-  </main>
-
-  <div class="carrito-float" onclick="toggleCarrito()" id="carritoBtn" style="display:none">
-    &#x1F6D2;<span class="count" id="carritoCount">0</span>
+<div class="header">
+  <div class="header-text">
+    <h1>&#x1F409; El Drag&oacute;n Rojo</h1>
+    <p>Cocina Asi&aacute;tica &mdash; Sistema de gesti&oacute;n</p>
   </div>
-  <div class="carrito-panel" id="carritoPanel">
-    <h3 style="color:#f4c542;margin-top:0">Pedido actual</h3>
-    <label>Mesa</label>
-    <select id="carritoMesa"></select>
-    <div id="carritoItems" style="margin-top:12px"></div>
-    <div id="carritoTotal" class="total-line" style="display:none"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="primary-btn" onclick="enviarCarrito('cocina')" style="flex:1">Enviar a Cocina</button>
-      <button class="primary-btn" onclick="enviarCarrito('barra')" style="flex:1">Enviar a Barra</button>
+  <div class="header-right">
+    <select id="currentUser" onchange="onUserChange()">
+      <option value="">Cargando...</option>
+    </select>
+  </div>
+</div>
+
+<nav class="tabs" id="tabsNav"></nav>
+
+<main>
+  <!-- MAPA DE MESAS -->
+  <section id="sec-mapa">
+    <h2>Mapa de mesas</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">
+      &#x1F7E2; Libre &middot; &#x1F534; Ocupada &middot; &#x1F7E1; Reservada &mdash; Clic para administrar
+    </p>
+    <div class="mapa" id="mesasGrid"></div>
+  </section>
+
+  <!-- RESERVAS -->
+  <section id="sec-reservas">
+    <h2>Reservas</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Nueva reserva</h3>
+        <label>Nombre</label><input id="rNombre" placeholder="Ej: Luis Mart&iacute;nez"/>
+        <label>Tel&eacute;fono</label><input id="rTel" placeholder="11 5555-5555"/>
+        <label>Personas</label><input id="rPersonas" type="number" min="1" max="20" value="2"/>
+        <label>Mesa</label><select id="rMesa"></select>
+        <label>Horario</label><select id="rHora"></select>
+        <label>Obs.</label><textarea id="rObs" rows="2" placeholder="Cumplea&ntilde;os, silla de beb&eacute;..."></textarea>
+        <br><button class="btn" onclick="crearReserva()" style="width:100%;margin-top:8px">Confirmar reserva</button>
+        <div class="status-box" id="rStatus">Horarios: 19:00 a 21:30 cada 30 min.</div>
+      </div>
+      <div class="card">
+        <h3>Reservas de hoy</h3>
+        <div id="reservasList"></div>
+      </div>
     </div>
+  </section>
+
+  <!-- CARTA DIGITAL -->
+  <section id="sec-carta">
+    <h2>Carta digital</h2>
+    <div id="menuContainer"></div>
+  </section>
+
+  <!-- PEDIDOS (COCINA / BARRA) -->
+  <section id="sec-pedidos">
+    <h2>Monitor de pedidos</h2>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-sm active" id="fTodos" onclick="setPedidoFilter('')">Todos</button>
+      <button class="btn btn-sm" id="fCocina" onclick="setPedidoFilter('cocina')">&#x1F525; Cocina</button>
+      <button class="btn btn-sm" id="fBarra" onclick="setPedidoFilter('barra')">&#x1F378; Barra</button>
+    </div>
+    <div id="pedidosList"></div>
+  </section>
+
+  <!-- ADMIN: CERRAR CUENTA -->
+  <section id="sec-cuenta">
+    <h2>Cerrar cuenta</h2>
+    <div class="card" style="max-width:520px">
+      <label>Mesa</label><select id="cMesa" onchange="previewCuenta()"></select>
+      <div id="cPreview" style="margin-top:14px"></div>
+      <label>Medio de pago</label>
+      <select id="cPago">
+        <option>Efectivo</option><option>Tarjeta</option>
+        <option>Transferencia</option><option>Mercado Pago</option>
+      </select>
+      <br><button class="btn" onclick="cerrarCuenta()" style="width:100%;margin-top:12px">
+        Cerrar cuenta y liberar mesa</button>
+      <div class="status-box" id="cStatus"></div>
+    </div>
+  </section>
+</main>
+
+<!-- CARRITO FLOTANTE -->
+<div class="carrito-fab" id="carritoFab" onclick="toggleCarrito()">
+  &#x1F6D2;<span class="cnt" id="carritoCnt">0</span>
+</div>
+<div class="carrito-panel" id="carritoPanel">
+  <h3 style="color:var(--gold);margin:0 0 10px;font-size:15px">Pedido actual</h3>
+  <label>Mesa destino</label><select id="carritoMesa"></select>
+  <div id="carritoItems" style="margin-top:10px"></div>
+  <div id="carritoTotal" class="cuenta-total" style="display:none"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn" onclick="enviarCarrito('cocina')" style="flex:1">&#x1F525; Cocina</button>
+    <button class="btn" onclick="enviarCarrito('barra')" style="flex:1">&#x1F378; Barra</button>
   </div>
+</div>
+
+<!-- MODAL MESA -->
+<div class="modal-overlay" id="mesaModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMesaModal()">&times;</button>
+    <h3 style="color:var(--gold)" id="modalTitle">Mesa X</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
 <script>
-const API = '';
-const HORARIOS = ['19:00','19:30','20:00','20:30','21:00','21:30'];
-const TABS = [
-  {id:'mapa', label:'Mapa de mesas'},
-  {id:'reservas', label:'Reservas'},
-  {id:'carta', label:'Carta digital'},
-  {id:'pedidos', label:'Pedidos'},
-  {id:'cuenta', label:'Cerrar cuenta'},
+const TABS=[
+  {id:'mapa',label:'Mapa de mesas'},
+  {id:'reservas',label:'Reservas'},
+  {id:'carta',label:'Carta'},
+  {id:'pedidos',label:'Pedidos'},
+  {id:'cuenta',label:'Cerrar cuenta'},
 ];
+const HORARIOS=['19:00','19:30','20:00','20:30','21:00','21:30'];
+let mesas=[],menuData=[],usuarios=[],carrito=[];
+let pedidoFilter='';
+let currentUserId=null;
 
-let mesasData = [];
-let menuData = [];
-let carrito = [];
-let pedidosFiltro = 'todos';
-
-// --- Init ---
-function init() {
+// ---- INIT ----
+async function init(){
   renderTabs();
   showTab('mapa');
-  loadMesas();
-  loadMenu();
-  loadReservas();
-  loadPedidos();
-  setInterval(loadPedidos, 10000);
+  await loadUsuarios();
+  await Promise.all([loadMesas(),loadMenu()]);
+  loadReservas();loadPedidos();
+  setInterval(loadPedidos,8000);
+  setInterval(loadMesas,15000);
 }
 
-function renderTabs() {
-  const nav = document.getElementById('tabsNav');
-  nav.innerHTML = TABS.map(t =>
-    `<button id="tab-${t.id}" onclick="showTab('${t.id}')">${t.label}</button>`
+function renderTabs(){
+  document.getElementById('tabsNav').innerHTML=TABS.map(t=>
+    `<button class="tab" id="tab-${t.id}" onclick="showTab('${t.id}')">${t.label}</button>`
   ).join('');
 }
-
-function showTab(id) {
-  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+function showTab(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  if (id === 'pedidos') loadPedidos();
-  if (id === 'reservas') loadReservas();
+  if(id==='pedidos')loadPedidos();
+  if(id==='reservas')loadReservas();
+  if(id==='cuenta')previewCuenta();
 }
 
-// --- API helpers ---
-async function api(path, opts = {}) {
-  const res = await fetch(API + path, {
-    headers: {'Content-Type': 'application/json'},
-    ...opts,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
+async function api(path,opts={}){
+  const res=await fetch(path,{
+    headers:{'Content-Type':'application/json'},...opts,
+    body:opts.body?JSON.stringify(opts.body):undefined
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error del servidor');
-  return data;
+  const d=await res.json();
+  if(!res.ok)throw new Error(d.error||'Error');
+  return d;
 }
 
-// --- Mesas ---
-async function loadMesas() {
-  mesasData = await api('/api/mesas');
-  renderMesas();
-  fillMesaSelects();
+// ---- USUARIOS ----
+async function loadUsuarios(){
+  usuarios=await api('/api/usuarios');
+  const sel=document.getElementById('currentUser');
+  const mozos=usuarios.filter(u=>u.rol==='mozo'||u.rol==='admin');
+  sel.innerHTML=mozos.map(u=>`<option value="${u.id}">${u.nombre} (${u.rol})</option>`).join('');
+  currentUserId=mozos.length?mozos[0].id:null;
+}
+function onUserChange(){
+  currentUserId=parseInt(document.getElementById('currentUser').value)||null;
 }
 
-function renderMesas() {
-  const grid = document.getElementById('mesasGrid');
-  grid.innerHTML = mesasData.map(m => `
-    <div class="mesa ${m.estado}" onclick="toggleMesa(${m.id}, '${m.estado}')">
+// ---- MESAS ----
+async function loadMesas(){
+  mesas=await api('/api/mesas');
+  renderMesas();fillSelects();
+}
+function renderMesas(){
+  document.getElementById('mesasGrid').innerHTML=mesas.map(m=>`
+    <div class="mesa ${m.estado}" onclick="openMesaModal(${m.id})">
       <span>${m.nombre}</span>
-      <small>${m.capacidad}p &middot; ${m.estado}</small>
+      <small>${m.capacidad}p</small>
+      ${m.mozo_nombre?`<span class="mozo-tag">${m.mozo_nombre}</span>`:''}
     </div>
   `).join('');
 }
+function fillSelects(){
+  ['rMesa','cMesa','carritoMesa'].forEach(sid=>{
+    const s=document.getElementById(sid);if(!s)return;
+    s.innerHTML=mesas.map(m=>`<option value="${m.id}">${m.nombre} (${m.capacidad}p) - ${m.estado}</option>`).join('');
+  });
+  const h=document.getElementById('rHora');
+  if(h)h.innerHTML=HORARIOS.map(x=>`<option>${x}</option>`).join('');
+}
 
-async function toggleMesa(id, estado) {
-  const next = estado === 'libre' ? 'ocupada' : 'libre';
-  await api(`/api/mesas/${id}`, {method:'PATCH', body:{estado: next}});
+// ---- MESA MODAL (admin) ----
+function openMesaModal(id){
+  const m=mesas.find(x=>x.id===id);if(!m)return;
+  document.getElementById('modalTitle').textContent=m.nombre+' — '+m.estado;
+  const mozos=usuarios.filter(u=>u.rol==='mozo'||u.rol==='admin');
+  const libres=mesas.filter(x=>x.estado==='libre'&&x.id!==id);
+  let html=`
+    <div style="margin:12px 0">
+      <label>Estado</label>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn btn-sm btn-green" onclick="setMesaEstado(${id},'libre')">Libre</button>
+        <button class="btn btn-sm" onclick="setMesaEstado(${id},'ocupada')">Ocupada</button>
+        <button class="btn btn-sm" style="border-color:var(--orange);color:var(--orange)" onclick="setMesaEstado(${id},'reservada')">Reservada</button>
+      </div>
+    </div>
+    <label>Mozo asignado</label>
+    <select id="modalMozo" style="margin-top:4px" onchange="setMozo(${id},this.value)">
+      <option value="">Sin asignar</option>
+      ${mozos.map(u=>`<option value="${u.id}" ${m.mozo_id===u.id?'selected':''}>${u.nombre}</option>`).join('')}
+    </select>`;
+  if(m.estado==='ocupada'&&libres.length>0){
+    html+=`
+    <label>Trasladar a</label>
+    <select id="modalTraslado" style="margin-top:4px">
+      ${libres.map(x=>`<option value="${x.id}">${x.nombre} (${x.capacidad}p)</option>`).join('')}
+    </select>
+    <button class="btn btn-sm" style="margin-top:8px" onclick="trasladarMesa(${id})">Trasladar</button>`;
+  }
+  document.getElementById('modalBody').innerHTML=html;
+  document.getElementById('mesaModal').classList.add('open');
+}
+function closeMesaModal(){document.getElementById('mesaModal').classList.remove('open')}
+
+async function setMesaEstado(id,estado){
+  await api(`/api/mesas/${id}`,{method:'PATCH',body:{estado}});
+  closeMesaModal();loadMesas();
+}
+async function setMozo(id,mozoId){
+  await api(`/api/mesas/${id}`,{method:'PATCH',body:{mozo_id:mozoId?parseInt(mozoId):null}});
   loadMesas();
 }
-
-function fillMesaSelects() {
-  const ids = ['resMesa','cuentaMesa','carritoMesa'];
-  ids.forEach(sid => {
-    const sel = document.getElementById(sid);
-    if (!sel) return;
-    sel.innerHTML = mesasData.map(m =>
-      `<option value="${m.id}">${m.nombre} (${m.capacidad}p) - ${m.estado}</option>`
-    ).join('');
-  });
-  const hora = document.getElementById('resHora');
-  if (hora) hora.innerHTML = HORARIOS.map(h => `<option>${h}</option>`).join('');
+async function trasladarMesa(origenId){
+  const destId=parseInt(document.getElementById('modalTraslado').value);
+  try{
+    const r=await api(`/api/mesas/${origenId}/trasladar`,{method:'POST',body:{destino_id:destId}});
+    alert(r.mensaje);closeMesaModal();loadMesas();
+  }catch(e){alert(e.message)}
 }
 
-// --- Menu ---
-async function loadMenu() {
-  menuData = await api('/api/menu');
+// ---- MENU / CARTA ----
+async function loadMenu(){
+  menuData=await api('/api/menu');
   renderMenu();
 }
-
-function renderMenu() {
-  const grid = document.getElementById('menuGrid');
-  grid.innerHTML = menuData.map(cat => `
-    <div class="card">
-      <h3>${cat.nombre}</h3>
-      ${cat.items.map(item => `
-        <div class="menu-item">
-          <img src="${item.imagen}" alt="${item.nombre}" loading="lazy" onerror="this.style.display='none'">
-          <div class="menu-item-info">
-            <strong>${item.nombre}</strong><br>
-            <span class="price">$${item.precio.toLocaleString('es-AR')}</span>
-            <div class="qty-control">
-              <button onclick="addToCarrito(${item.id}, '${item.nombre.replace(/'/g,"\\'")}', ${item.precio})">+ Agregar</button>
-            </div>
+function renderMenu(){
+  document.getElementById('menuContainer').innerHTML=menuData.map(cat=>`
+    <div class="menu-cat">
+      <div class="menu-cat-title">${cat.nombre}</div>
+      ${cat.items.map(it=>`
+        <div class="menu-row">
+          <span class="menu-row-name">${it.nombre}</span>
+          <span class="menu-row-price">$${it.precio.toLocaleString('es-AR')}</span>
+          <div class="qty-ctrl">
+            <button onclick="removeCarrito(${it.id})">-</button>
+            <span id="qty-${it.id}">0</span>
+            <button onclick="addCarrito(${it.id},'${it.nombre.replace(/'/g,"\\'")}',${it.precio})">+</button>
           </div>
         </div>
       `).join('')}
     </div>
   `).join('');
+  syncQtyDisplay();
 }
 
-// --- Carrito ---
-function addToCarrito(itemId, nombre, precio) {
-  const existing = carrito.find(c => c.menu_item_id === itemId);
-  if (existing) {
-    existing.cantidad++;
-  } else {
-    carrito.push({menu_item_id: itemId, descripcion: nombre, cantidad: 1, precio_unitario: precio});
+// ---- CARRITO ----
+function addCarrito(id,nombre,precio){
+  const e=carrito.find(c=>c.menu_item_id===id);
+  if(e)e.cantidad++;
+  else carrito.push({menu_item_id:id,descripcion:nombre,cantidad:1,precio_unitario:precio});
+  syncQtyDisplay();updateCarritoUI();
+}
+function removeCarrito(id){
+  const i=carrito.findIndex(c=>c.menu_item_id===id);
+  if(i===-1)return;
+  carrito[i].cantidad--;
+  if(carrito[i].cantidad<=0)carrito.splice(i,1);
+  syncQtyDisplay();updateCarritoUI();
+}
+function syncQtyDisplay(){
+  menuData.forEach(cat=>cat.items.forEach(it=>{
+    const el=document.getElementById('qty-'+it.id);
+    if(!el)return;
+    const c=carrito.find(x=>x.menu_item_id===it.id);
+    el.textContent=c?c.cantidad:'0';
+    el.style.color=c&&c.cantidad>0?'var(--gold)':'var(--text-dim)';
+  }));
+}
+function updateCarritoUI(){
+  const fab=document.getElementById('carritoFab');
+  const cnt=document.getElementById('carritoCnt');
+  const total=carrito.reduce((s,c)=>s+c.cantidad,0);
+  fab.style.display=total>0?'flex':'none';
+  cnt.textContent=total;
+  const box=document.getElementById('carritoItems');
+  const tLine=document.getElementById('carritoTotal');
+  if(!carrito.length){
+    box.innerHTML='<p style="color:var(--text-dim);font-size:13px">Agreg&aacute; items desde la carta</p>';
+    tLine.style.display='none';return;
   }
-  updateCarritoUI();
-}
-
-function removeFromCarrito(idx) {
-  carrito[idx].cantidad--;
-  if (carrito[idx].cantidad <= 0) carrito.splice(idx, 1);
-  updateCarritoUI();
-}
-
-function updateCarritoUI() {
-  const btn = document.getElementById('carritoBtn');
-  const count = document.getElementById('carritoCount');
-  const total = carrito.reduce((s, c) => s + c.cantidad, 0);
-  btn.style.display = total > 0 ? 'flex' : 'none';
-  count.textContent = total;
-
-  const container = document.getElementById('carritoItems');
-  const totalLine = document.getElementById('carritoTotal');
-  if (carrito.length === 0) {
-    container.innerHTML = '<p style="opacity:.5">Agregá items desde la carta</p>';
-    totalLine.style.display = 'none';
-    return;
-  }
-  let sum = 0;
-  container.innerHTML = carrito.map((c, i) => {
-    const sub = c.cantidad * c.precio_unitario;
-    sum += sub;
-    return `<div class="cuenta-item">
+  let sum=0;
+  box.innerHTML=carrito.map((c,i)=>{
+    const sub=c.cantidad*c.precio_unitario;sum+=sub;
+    return `<div class="cuenta-line">
       <span>${c.cantidad}x ${c.descripcion}</span>
-      <span>$${sub.toLocaleString('es-AR')} <span style="cursor:pointer;color:#ff4444" onclick="removeFromCarrito(${i})">&#x2716;</span></span>
+      <span>$${sub.toLocaleString('es-AR')}
+        <span style="cursor:pointer;color:#ff4444;margin-left:4px" onclick="carrito.splice(${i},1);syncQtyDisplay();updateCarritoUI()">&#x2716;</span>
+      </span>
     </div>`;
   }).join('');
-  totalLine.style.display = 'flex';
-  totalLine.innerHTML = `<span>Total</span><span>$${sum.toLocaleString('es-AR')}</span>`;
+  tLine.style.display='flex';
+  tLine.innerHTML=`<span>Total</span><span>$${sum.toLocaleString('es-AR')}</span>`;
 }
-
-function toggleCarrito() {
-  document.getElementById('carritoPanel').classList.toggle('open');
-}
-
-async function enviarCarrito(area) {
-  if (carrito.length === 0) return alert('El carrito está vacío');
-  const mesaId = document.getElementById('carritoMesa').value;
-  try {
-    await api('/api/pedidos', {
-      method: 'POST',
-      body: {mesa_id: parseInt(mesaId), area, items: carrito}
-    });
-    carrito = [];
-    updateCarritoUI();
+function toggleCarrito(){document.getElementById('carritoPanel').classList.toggle('open')}
+async function enviarCarrito(area){
+  if(!carrito.length)return alert('Carrito vacío');
+  const mesaId=parseInt(document.getElementById('carritoMesa').value);
+  try{
+    await api('/api/pedidos',{method:'POST',body:{
+      mesa_id:mesaId,area,mozo_id:currentUserId,items:carrito
+    }});
+    carrito=[];syncQtyDisplay();updateCarritoUI();
     document.getElementById('carritoPanel').classList.remove('open');
-    loadMesas();
-    loadPedidos();
-    alert(`Pedido enviado a ${area}`);
-  } catch (e) {
-    alert('Error: ' + e.message);
-  }
+    loadMesas();loadPedidos();
+    alert('Pedido enviado a '+area);
+  }catch(e){alert(e.message)}
 }
 
-// --- Reservas ---
-async function loadReservas() {
-  const reservas = await api('/api/reservas');
-  const container = document.getElementById('reservasList');
-  if (reservas.length === 0) {
-    container.innerHTML = '<p style="opacity:.5">No hay reservas para hoy.</p>';
-    return;
-  }
-  container.innerHTML = reservas.map(r => `
-    <div class="reserva-row">
-      <div>
-        <strong>${r.horario}</strong> - ${r.nombre}<br>
-        <small>${r.mesa_nombre} &middot; ${r.personas}p ${r.telefono ? '&middot; '+r.telefono : ''}</small>
-        ${r.observaciones ? '<br><small style="opacity:.6">'+r.observaciones+'</small>' : ''}
-      </div>
-      <button onclick="cancelarReserva(${r.id})" title="Cancelar">&#x2716;</button>
+// ---- RESERVAS ----
+async function loadReservas(){
+  const list=await api('/api/reservas');
+  const c=document.getElementById('reservasList');
+  if(!list.length){c.innerHTML='<p style="color:var(--text-dim)">Sin reservas hoy.</p>';return}
+  c.innerHTML=list.map(r=>`
+    <div class="res-row">
+      <div><strong>${r.horario}</strong> — ${r.nombre}<br>
+        <small style="color:var(--text-dim)">${r.mesa_nombre} &middot; ${r.personas}p
+        ${r.telefono?' &middot; '+r.telefono:''}
+        ${r.observaciones?'<br>'+r.observaciones:''}</small></div>
+      <button class="btn btn-sm btn-danger" onclick="cancelarReserva(${r.id})">&#x2716;</button>
     </div>
   `).join('');
 }
-
-async function crearReserva() {
-  const nombre = document.getElementById('resNombre').value.trim();
-  if (!nombre) return alert('Ingresá un nombre');
-  try {
-    const r = await api('/api/reservas', {
-      method: 'POST',
-      body: {
-        mesa_id: parseInt(document.getElementById('resMesa').value),
-        nombre,
-        telefono: document.getElementById('resTel').value,
-        personas: parseInt(document.getElementById('resPersonas').value),
-        horario: document.getElementById('resHora').value,
-        observaciones: document.getElementById('resObs').value,
-      }
-    });
-    document.getElementById('resStatus').innerHTML =
-      `&#x2705; Reserva #${r.id} confirmada para <b>${r.nombre}</b> a las ${r.horario}.`;
-    document.getElementById('resNombre').value = '';
-    document.getElementById('resTel').value = '';
-    document.getElementById('resObs').value = '';
-    loadMesas();
-    loadReservas();
-  } catch (e) {
-    document.getElementById('resStatus').innerHTML = `&#x274C; ${e.message}`;
-  }
+async function crearReserva(){
+  const nombre=document.getElementById('rNombre').value.trim();
+  if(!nombre)return alert('Ingresá un nombre');
+  try{
+    const r=await api('/api/reservas',{method:'POST',body:{
+      mesa_id:parseInt(document.getElementById('rMesa').value),
+      nombre,telefono:document.getElementById('rTel').value,
+      personas:parseInt(document.getElementById('rPersonas').value),
+      horario:document.getElementById('rHora').value,
+      observaciones:document.getElementById('rObs').value
+    }});
+    document.getElementById('rStatus').innerHTML=
+      `&#x2705; Reserva #${r.id} confirmada: <b>${r.nombre}</b> a las ${r.horario}`;
+    document.getElementById('rNombre').value='';
+    document.getElementById('rTel').value='';
+    document.getElementById('rObs').value='';
+    loadMesas();loadReservas();
+  }catch(e){document.getElementById('rStatus').innerHTML='&#x274C; '+e.message}
+}
+async function cancelarReserva(id){
+  if(!confirm('¿Cancelar reserva?'))return;
+  await api('/api/reservas/'+id,{method:'DELETE'});
+  loadMesas();loadReservas();
 }
 
-async function cancelarReserva(id) {
-  if (!confirm('¿Cancelar esta reserva?')) return;
-  await api(`/api/reservas/${id}`, {method: 'DELETE'});
-  loadMesas();
-  loadReservas();
-}
-
-// --- Pedidos ---
-async function loadPedidos() {
-  const pedidos = await api('/api/pedidos');
-  renderPedidos(pedidos);
-}
-
-function filtrarPedidos(filtro) {
-  pedidosFiltro = filtro;
+// ---- PEDIDOS ----
+function setPedidoFilter(f){
+  pedidoFilter=f;
+  document.querySelectorAll('#sec-pedidos .btn-sm').forEach(b=>b.classList.remove('active'));
+  document.getElementById(f?'f'+f.charAt(0).toUpperCase()+f.slice(1):'fTodos').classList.add('active');
   loadPedidos();
 }
-
-function renderPedidos(pedidos) {
-  const filtered = pedidosFiltro === 'todos' ? pedidos : pedidos.filter(p => p.area === pedidosFiltro);
-  const container = document.getElementById('pedidosList');
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="status">Sin pedidos activos.</div>';
-    return;
-  }
-  container.innerHTML = filtered.map(p => {
-    const estados = ['pendiente','preparando','listo'];
-    const nextIdx = estados.indexOf(p.estado) + 1;
-    const nextEstado = nextIdx < estados.length ? estados[nextIdx] : 'entregado';
-    const btnLabel = {pendiente:'Preparando',preparando:'Listo',listo:'Entregado'}[p.estado];
+async function loadPedidos(){
+  const url=pedidoFilter?'/api/pedidos?area='+pedidoFilter:'/api/pedidos';
+  const list=await api(url);
+  const c=document.getElementById('pedidosList');
+  if(!list.length){c.innerHTML='<div class="status-box">Sin pedidos activos.</div>';return}
+  c.innerHTML=list.map(p=>{
+    const next={pendiente:'preparando',preparando:'listo',listo:'entregado'}[p.estado];
+    const label={pendiente:'Preparando',preparando:'Listo!',listo:'Entregado'}[p.estado];
+    const itemsTotal=p.items.reduce((s,i)=>s+i.cantidad*i.precio_unitario,0);
     return `<div class="pedido-card ${p.area}">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <strong>${p.mesa_nombre}</strong> &rarr;
-          <span style="text-transform:uppercase;font-size:13px">${p.area}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div><strong>${p.mesa_nombre}</strong> &rarr;
+          <span style="text-transform:uppercase;font-size:12px;opacity:.7">${p.area}</span>
           <span class="badge ${p.estado}">${p.estado}</span>
+          ${p.mozo_nombre?'<small style="color:var(--text-dim)"> &middot; '+p.mozo_nombre+'</small>':''}
         </div>
-        <small style="opacity:.5">${p.created_at}</small>
+        <small style="color:var(--text-dim)">${p.created_at}</small>
       </div>
-      <div style="margin-top:6px">
-        ${p.items.map(i => `<span>${i.cantidad}x ${i.descripcion}</span>`).join(' &middot; ')}
+      <div style="margin-top:8px">
+        ${p.items.map(i=>`<div class="cuenta-line"><span>${i.cantidad}x ${i.descripcion}</span>
+          <span style="color:var(--gold)">$${(i.cantidad*i.precio_unitario).toLocaleString('es-AR')}</span></div>`).join('')}
+        <div style="text-align:right;color:var(--gold);font-weight:700;margin-top:4px">
+          Subtotal: $${itemsTotal.toLocaleString('es-AR')}</div>
       </div>
-      ${btnLabel ? `<button class="primary-btn" style="margin-top:8px;padding:8px 14px;font-size:13px"
-        onclick="avanzarPedido(${p.id},'${nextEstado}')">Marcar: ${btnLabel}</button>` : ''}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        ${next?`<button class="btn btn-sm btn-green" onclick="avanzarPedido(${p.id},'${next}')">&#x2714; ${label}</button>`:''}
+        ${p.estado==='pendiente'?`<button class="btn btn-sm btn-danger" onclick="avanzarPedido(${p.id},'cancelado')">Cancelar</button>`:''}
+      </div>
     </div>`;
   }).join('');
 }
-
-async function avanzarPedido(id, estado) {
-  await api(`/api/pedidos/${id}`, {method:'PATCH', body:{estado}});
+async function avanzarPedido(id,estado){
+  await api('/api/pedidos/'+id,{method:'PATCH',body:{estado}});
   loadPedidos();
 }
 
-// --- Cuenta ---
-async function previewCuenta() {
-  const mesaId = document.getElementById('cuentaMesa').value;
-  try {
-    const data = await api(`/api/cuentas/preview/${mesaId}`);
-    const container = document.getElementById('cuentaPreview');
-    if (data.items.length === 0) {
-      container.innerHTML = '<p style="opacity:.5">No hay consumos pendientes en esta mesa.</p>';
-      return;
-    }
-    container.innerHTML = data.items.map(i =>
-      `<div class="cuenta-item"><span>${i.cantidad}x ${i.descripcion}</span><span>$${i.subtotal.toLocaleString('es-AR')}</span></div>`
-    ).join('') + `<div class="total-line"><span>Total</span><span>$${data.total.toLocaleString('es-AR')}</span></div>`;
-  } catch(e) {
-    document.getElementById('cuentaPreview').innerHTML = '';
-  }
+// ---- CUENTA ----
+async function previewCuenta(){
+  const mesaId=document.getElementById('cMesa').value;
+  try{
+    const d=await api('/api/cuentas/preview/'+mesaId);
+    const c=document.getElementById('cPreview');
+    if(!d.items.length){c.innerHTML='<p style="color:var(--text-dim)">Sin consumos en esta mesa.</p>';return}
+    c.innerHTML=d.items.map(i=>
+      `<div class="cuenta-line"><span>${i.cantidad}x ${i.descripcion}</span>
+       <span style="color:var(--gold)">$${i.subtotal.toLocaleString('es-AR')}</span></div>`
+    ).join('')+`<div class="cuenta-total"><span>TOTAL</span><span>$${d.total.toLocaleString('es-AR')}</span></div>`;
+  }catch(e){document.getElementById('cPreview').innerHTML=''}
 }
-
-async function cerrarCuenta() {
-  const mesaId = document.getElementById('cuentaMesa').value;
-  const medio = document.getElementById('medioPago').value;
-  try {
-    const c = await api('/api/cuentas', {
-      method: 'POST',
-      body: {mesa_id: parseInt(mesaId), medio_pago: medio}
-    });
-    document.getElementById('cuentaStatus').innerHTML =
-      `&#x1F4B3; Cuenta #${c.id} cerrada. Total: $${c.total.toLocaleString('es-AR')}. Pago: ${c.medio_pago}. Mesa liberada.`;
-    document.getElementById('cuentaPreview').innerHTML = '';
+async function cerrarCuenta(){
+  const mesaId=parseInt(document.getElementById('cMesa').value);
+  const medio=document.getElementById('cPago').value;
+  try{
+    const c=await api('/api/cuentas',{method:'POST',body:{
+      mesa_id:mesaId,medio_pago:medio,cerrada_por:currentUserId
+    }});
+    document.getElementById('cStatus').innerHTML=
+      `&#x1F4B3; Cuenta #${c.id} cerrada &mdash; Total: $${c.total.toLocaleString('es-AR')} &mdash; ${c.medio_pago}. Mesa liberada.`;
+    document.getElementById('cPreview').innerHTML='';
     loadMesas();
-  } catch(e) {
-    document.getElementById('cuentaStatus').innerHTML = `&#x274C; ${e.message}`;
-  }
+  }catch(e){document.getElementById('cStatus').innerHTML='&#x274C; '+e.message}
 }
 
-// --- Start ---
+// ---- START ----
 init();
 </script>
 </body>

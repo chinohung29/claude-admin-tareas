@@ -16,12 +16,23 @@ def init_db():
     c = conn.cursor()
 
     c.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            rol TEXT NOT NULL DEFAULT 'mozo'
+                CHECK (rol IN ('mozo', 'admin', 'cocina', 'barra')),
+            activo INTEGER NOT NULL DEFAULT 1
+        )
+    """)
+
+    c.execute("""
         CREATE TABLE IF NOT EXISTS mesas (
             id INTEGER PRIMARY KEY,
             nombre TEXT NOT NULL,
             capacidad INTEGER NOT NULL DEFAULT 4,
             estado TEXT NOT NULL DEFAULT 'libre'
-                CHECK (estado IN ('libre', 'ocupada', 'reservada'))
+                CHECK (estado IN ('libre', 'ocupada', 'reservada')),
+            mozo_id INTEGER REFERENCES usuarios(id)
         )
     """)
 
@@ -66,7 +77,8 @@ def init_db():
             mesa_id INTEGER NOT NULL REFERENCES mesas(id),
             area TEXT NOT NULL CHECK (area IN ('cocina', 'barra')),
             estado TEXT NOT NULL DEFAULT 'pendiente'
-                CHECK (estado IN ('pendiente', 'preparando', 'listo', 'entregado')),
+                CHECK (estado IN ('pendiente', 'preparando', 'listo', 'entregado', 'cancelado')),
+            mozo_id INTEGER REFERENCES usuarios(id),
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
     """)
@@ -88,49 +100,71 @@ def init_db():
             mesa_id INTEGER NOT NULL REFERENCES mesas(id),
             medio_pago TEXT NOT NULL,
             total REAL NOT NULL DEFAULT 0,
+            cerrada_por INTEGER REFERENCES usuarios(id),
             created_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
     """)
 
+    # --- Seed data ---
+    if c.execute("SELECT count(*) FROM usuarios").fetchone()[0] == 0:
+        mozos = [
+            ("Carlos", "mozo"), ("Lucía", "mozo"), ("Martín", "mozo"),
+            ("Admin", "admin"), ("Cocina", "cocina"), ("Barra", "barra"),
+        ]
+        c.executemany("INSERT INTO usuarios (nombre, rol) VALUES (?, ?)", mozos)
+
     if c.execute("SELECT count(*) FROM mesas").fetchone()[0] == 0:
         for i in range(1, 31):
-            cap = 2 if i <= 10 else (4 if i <= 22 else 6)
+            cap = 2 if i <= 8 else (4 if i <= 20 else (6 if i <= 26 else 8))
             c.execute("INSERT INTO mesas (id, nombre, capacidad) VALUES (?, ?, ?)",
                       (i, f"Mesa {i}", cap))
 
     if c.execute("SELECT count(*) FROM categorias").fetchone()[0] == 0:
         cats = [
-            (1, "Entradas", 1), (2, "Platos principales del día", 2),
-            (3, "Para compartir", 3), (4, "Carnes", 4), (5, "Pastas", 5),
-            (6, "Postres", 6), (7, "Bebidas sin alcohol", 7),
-            (8, "Cervezas", 8), (9, "Vinos", 9), (10, "Coctelería", 10),
+            (1, "Platos Principales", 1),
+            (2, "Bebidas sin Alcohol", 2),
+            (3, "Bebidas con Alcohol", 3),
+            (4, "Postres", 4),
         ]
         c.executemany("INSERT INTO categorias (id, nombre, orden) VALUES (?, ?, ?)", cats)
 
         items = [
-            (1, "Rabas crocantes", 6900, "https://images.unsplash.com/photo-1604909052743-94e838986d24?auto=format&fit=crop&w=500&q=80"),
-            (1, "Empanadas del dragón x3", 5400, "https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=500&q=80"),
-            (2, "Ramen del Dragón", 9800, "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80"),
-            (2, "Wok de pollo y verduras", 8700, "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=500&q=80"),
-            (3, "Tabla oriental mixta", 14500, "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80"),
-            (3, "Picada dragón para dos", 12800, "https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80"),
-            (4, "Bife sellado al fuego rojo", 13200, "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=500&q=80"),
-            (4, "Entraña a la parrilla", 11900, "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=500&q=80"),
-            (5, "Sorrentinos de calabaza", 8900, "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=500&q=80"),
-            (5, "Ñoquis a la bolognesa", 7800, "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=500&q=80"),
-            (6, "Volcán de chocolate", 5200, "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80"),
-            (6, "Flan casero con dulce de leche", 4100, "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=500&q=80"),
-            (7, "Limonada imperial", 3100, "https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=500&q=80"),
-            (7, "Agua saborizada", 2500, "https://images.unsplash.com/photo-1560023907-5f339617ea55?auto=format&fit=crop&w=500&q=80"),
-            (8, "Cerveza roja artesanal", 3900, "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=500&q=80"),
-            (8, "IPA del dragón", 4200, "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=500&q=80"),
-            (9, "Malbec reserva", 8500, "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=80"),
-            (9, "Torrontés blanco", 7200, "https://images.unsplash.com/photo-1474722883778-792e7990302f?auto=format&fit=crop&w=500&q=80"),
-            (10, "Negroni Dragón", 6200, "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80"),
-            (10, "Gin Tonic premium", 5800, "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=500&q=80"),
+            # 10 platos de comida china
+            (1, "Pollo agridulce", 8900),
+            (1, "Cerdo char siu", 9200),
+            (1, "Chop suey de verduras", 7500),
+            (1, "Arroz frito con langostinos", 10800),
+            (1, "Dim sum variado (8 pzas)", 9500),
+            (1, "Pato laqueado", 14200),
+            (1, "Wok de carne y brotes de soja", 9800),
+            (1, "Chow mein de pollo", 8400),
+            (1, "Tofu mapo picante", 7900),
+            (1, "Costillitas de cerdo glaseadas", 11500),
+            # 4 bebidas sin alcohol
+            (2, "Agua mineral 500ml", 1800),
+            (2, "Gaseosa línea Coca-Cola", 2200),
+            (2, "Jugo de naranja exprimido", 3100),
+            (2, "Té jazmín frío", 2800),
+            # 10 bebidas con alcohol
+            (3, "Cerveza Tsingtao 600ml", 3900),
+            (3, "Cerveza artesanal roja", 4200),
+            (3, "Sake frío 180ml", 5500),
+            (3, "Sake caliente 180ml", 5500),
+            (3, "Malbec reserva copa", 4800),
+            (3, "Malbec reserva botella", 16500),
+            (3, "Gin tonic premium", 5800),
+            (3, "Negroni Dragón", 6200),
+            (3, "Fernet con Coca", 4500),
+            (3, "Whisky Johnny Walker etiqueta negra", 7200),
+            # 5 postres
+            (4, "Banana frita con miel y sésamo", 4800),
+            (4, "Helado de lichi", 3900),
+            (4, "Rollitos de crema y nutella", 5200),
+            (4, "Flan casero con dulce de leche", 4100),
+            (4, "Volcán de chocolate", 5600),
         ]
         c.executemany(
-            "INSERT INTO menu_items (categoria_id, nombre, precio, imagen) VALUES (?, ?, ?, ?)",
+            "INSERT INTO menu_items (categoria_id, nombre, precio) VALUES (?, ?, ?)",
             items
         )
 
