@@ -7,9 +7,9 @@ const BLOQUES = [
 
 const SUPABASE_URL = 'https://bclqrmeeqssvqovkvvkz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CE2MOsoNw_D0aCvWcbYk0w_INz9XXX1';
-const EMAIL_DUENO = 'lamh2903@gmail.com';
-const CACHE_KEY = 'lmh_job_cache_v2';
-const PENDING_KEY = 'lmh_job_pending_v2';
+const uid = () => (session && session.user ? session.user.id : 'anon');
+const cacheKey = () => 'lmh_job_cache_v3:' + uid();
+const pendKey = () => 'lmh_job_pending_v3:' + uid();
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const TODAY = new Date();
 
@@ -36,25 +36,25 @@ function applyEstado(r) {
   if (r.removed) state.removed[r.job_id] = true; else delete state.removed[r.job_id];
 }
 function rowOf(id) {
-  return { job_id: id, status: state.status[id] || 'pendiente', archived: state.archived[id] === undefined ? null : state.archived[id], removed: !!state.removed[id], updated_at: new Date().toISOString() };
+  return { user_id: uid(), job_id: id, status: state.status[id] || 'pendiente', archived: state.archived[id] === undefined ? null : state.archived[id], removed: !!state.removed[id], updated_at: new Date().toISOString() };
 }
 
 // Los cambios que no se pudieron subir (sin conexión) se reintentan al volver.
 async function guardar(ids) {
-  const pend = readJSON(PENDING_KEY, {});
+  const pend = readJSON(pendKey(), {});
   ids.forEach(id => { pend[id] = rowOf(id); });
-  writeJSON(PENDING_KEY, pend);
+  writeJSON(pendKey(), pend);
   guardarCache();
   await vaciarPendientes();
 }
 async function vaciarPendientes() {
-  const pend = readJSON(PENDING_KEY, {});
-  const rows = Object.values(pend);
+  const pend = readJSON(pendKey(), {});
+  const rows = Object.values(pend).map(r => ({ ...r, user_id: uid() }));
   if (!rows.length || !session) return;
-  const { error } = await sb.from('estados').upsert(rows, { onConflict: 'job_id' });
-  if (!error) writeJSON(PENDING_KEY, {});
+  const { error } = await sb.from('estados').upsert(rows, { onConflict: 'user_id,job_id' });
+  if (!error) writeJSON(pendKey(), {});
 }
-function guardarCache() { writeJSON(CACHE_KEY, { items, state }); }
+function guardarCache() { writeJSON(cacheKey(), { items, state }); }
 
 function allItems() { return items.concat(state.custom); }
 function daysAgo(iso) {
@@ -234,7 +234,7 @@ async function cargar() {
   applyEstados(e.data);
   state.custom = m.data.map(r => ({ ...r, custom: true }));
   // Lo que quedó sin subir manda sobre lo del servidor.
-  Object.values(readJSON(PENDING_KEY, {})).forEach(r => applyEstado(r));
+  Object.values(readJSON(pendKey(), {})).forEach(r => applyEstado(r));
   guardarCache();
   showAviso();
   render();
@@ -246,7 +246,7 @@ async function cargar() {
 
 // ---- Perfil (CV) ----
 async function cargarPerfil() {
-  const { data, error } = await sb.from('perfil').select('*').eq('id', 'principal').maybeSingle();
+  const { data, error } = await sb.from('perfil').select('*').maybeSingle();
   if (error) return;
   perfil = data;
   renderPerfil();
@@ -304,8 +304,8 @@ document.getElementById('cvCancelar').addEventListener('click', () => { document
 document.getElementById('cvGuardar').addEventListener('click', async () => {
   const texto = document.getElementById('cvTexto').value.trim().slice(0, CV_MAX_CHARS);
   if (texto.length < 80) { cvMsg('El texto es muy corto para analizarlo.'); return; }
-  const fila = { id: 'principal', cv_nombre: document.getElementById('cvEditor').dataset.nombre || null, cv_texto: texto, cv_actualizado: new Date().toISOString() };
-  const { error } = await sb.from('perfil').upsert(fila, { onConflict: 'id' });
+  const fila = { user_id: uid(), cv_nombre: document.getElementById('cvEditor').dataset.nombre || null, cv_texto: texto, cv_actualizado: new Date().toISOString() };
+  const { error } = await sb.from('perfil').upsert(fila, { onConflict: 'user_id' });
   if (error) { cvMsg('No se pudo guardar: ' + error.message); return; }
   perfil = { ...(perfil || {}), ...fila };
   document.getElementById('cvEditor').hidden = true;
@@ -318,16 +318,17 @@ function suscribir() {
   if (canal) return;
   canal = sb.channel('estados-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'estados' }, p => {
+      if (p.new && p.new.user_id && p.new.user_id !== uid()) return;
       if (p.eventType === 'DELETE') {
         const id = p.old && p.old.job_id;
         if (id) { delete state.status[id]; delete state.archived[id]; delete state.removed[id]; }
-      } else if (!readJSON(PENDING_KEY, {})[p.new.job_id]) {
+      } else if (!readJSON(pendKey(), {})[p.new.job_id]) {
         applyEstado(p.new);
       }
       guardarCache(); render();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'perfil' }, p => {
-      if (p.new && p.new.id) { perfil = p.new; renderPerfil(); }
+      if (p.new && p.new.user_id === uid()) { perfil = p.new; renderPerfil(); }
     })
     .subscribe();
 }
@@ -335,14 +336,9 @@ function suscribir() {
 async function entrar(s) {
   session = s;
   if (!s) { mostrarLogin(); return; }
-  if ((s.user.email || '').toLowerCase() !== EMAIL_DUENO) {
-    await sb.auth.signOut();
-    mostrarLogin('Esta app es privada: iniciá sesión con ' + EMAIL_DUENO + '.');
-    return;
-  }
   mostrarApp();
   tutorialPrimeraVez();
-  const cache = readJSON(CACHE_KEY, null);
+  const cache = readJSON(cacheKey(), null);
   if (cache) { items = cache.items || []; state = cache.state || state; showAviso(); render(); }
   await cargar();
   suscribir();
@@ -368,13 +364,13 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
   const msg = document.getElementById('loginMsg');
   if (a !== b) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
   msg.textContent = 'Creando la cuenta…';
-  const { error } = await sb.auth.signUp({ email, password: a });
-  if (error) { msg.textContent = 'No se pudo crear la cuenta: ' + (/cerrado/i.test(error.message) ? 'este email no está habilitado.' : error.message); return; }
-  const r = await sb.auth.signInWithPassword({ email, password: a });
-  msg.textContent = r.error ? 'Cuenta creada, pero no se pudo entrar: ' + r.error.message : '';
+  const { data, error } = await sb.auth.signUp({ email, password: a, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error) { msg.textContent = 'No se pudo crear la cuenta: ' + error.message; return; }
+  if (data.session) { msg.textContent = ''; return; }
+  msg.textContent = 'Te enviamos un mail a ' + email + '. Abrí el link para confirmar tu cuenta y después entrá con tu contraseña.';
 });
 document.getElementById('logout').addEventListener('click', async () => {
-  try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
+  try { localStorage.removeItem(cacheKey()); } catch (e) {}
   await sb.auth.signOut();
 });
 

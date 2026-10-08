@@ -1,5 +1,5 @@
--- Datos iniciales de ofertas y estados (respaldo 2026-10-08). Ejecutar después de schema.sql.
-insert into public.ofertas (id,bloque,titulo,empresa,modalidad,salario,iso,url,enlace,nuevo,prio,archivado,motivo) values
+-- Datos de prueba (respaldo 2026-10-08): se cargan en las tablas de resguardo legado_*. Ejecutar después de schema.sql.
+insert into public.legado_ofertas (id,bloque,titulo,empresa,modalidad,salario,iso,url,enlace,nuevo,prio,archivado,motivo) values
 ('a1','admin','Responsable de Administración y Finanzas','Banco Comafi','Híbrido',null,null,'https://ar.indeed.com/q-administrativo-hibrido-l-buenos-aires,-buenos-aires-empleos.html','busqueda',false,null,false,null),
 ('a2','admin','Analista Funcional Senior, Administración y Finanzas','LA NACION','Híbrido',null,null,'https://ar.indeed.com/q-administrativo-hibrido-l-buenos-aires,-buenos-aires-empleos.html','busqueda',false,null,false,null),
 ('m1','ia','AI Automation Engineer (contrato): agentes sin supervisión, integraciones, pipelines en Python o Node','Blupax Pharmaceuticals','Remoto freelance (Sudamérica y Centroamérica)',null,'2026-10-01','https://www.getonbrd.com/empleos/programacion/ai-automation-engineer-contract-blupax-pharmaceuticals-remote',null,true,null,false,null),
@@ -17,7 +17,7 @@ insert into public.ofertas (id,bloque,titulo,empresa,modalidad,salario,iso,url,e
 ('r3','admin','Analista de Facturación (Administración)','Urbano Express Argentina','Híbrido',null,null,'https://ar.indeed.com/q-analista-de-facturaci%C3%B3n-y-cobranzas-l-buenos-aires,-buenos-aires-empleos.html','busqueda',true,3,false,null),
 ('r9','odoo','Analista Funcional para implementación de Odoo (3+ años)','Zivot, San Martín','A confirmar',null,null,'https://ar.computrabajo.com/trabajo-de-analista-funcional-odoo','busqueda',true,2,false,null),
 ('c2','odoo','Analista Funcional con experiencia en ODOO (Ref. 17831)','ADN Recursos Humanos','Remoto',null,null,'https://grabjobs.co/argentina/job/full-time/education-training/ref-17831-analista-funcional-con-experiencia-en-odoo-remoto-hiring-now-25306146',null,false,null,false,null);
-insert into public.estados (job_id,status,archived,removed) values
+insert into public.legado_estados (job_id,status,archived,removed) values
 ('m1','pendiente',true,false),
 ('a1','postulado',true,false),
 ('a2','postulado',true,false),
