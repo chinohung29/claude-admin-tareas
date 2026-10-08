@@ -1,0 +1,225 @@
+{
+  "actualizado": "2026-10-07",
+  "items": [
+    {
+      "id": "a1",
+      "enlace": "busqueda",
+      "bloque": "admin",
+      "titulo": "Responsable de Administración y Finanzas",
+      "empresa": "Banco Comafi",
+      "modalidad": "Híbrido",
+      "iso": "",
+      "url": "https://ar.indeed.com/q-administrativo-hibrido-l-buenos-aires,-buenos-aires-empleos.html"
+    },
+    {
+      "id": "a2",
+      "enlace": "busqueda",
+      "bloque": "admin",
+      "titulo": "Analista Funcional Senior, Administración y Finanzas",
+      "empresa": "LA NACION",
+      "modalidad": "Híbrido",
+      "iso": "",
+      "url": "https://ar.indeed.com/q-administrativo-hibrido-l-buenos-aires,-buenos-aires-empleos.html"
+    },
+    {
+      "id": "m1",
+      "bloque": "ia",
+      "nuevo": true,
+      "titulo": "AI Automation Engineer (contrato): agentes sin supervisión, integraciones, pipelines en Python o Node",
+      "empresa": "Blupax Pharmaceuticals",
+      "modalidad": "Remoto freelance (Sudamérica y Centroamérica)",
+      "iso": "2026-10-01",
+      "url": "https://www.getonbrd.com/empleos/programacion/ai-automation-engineer-contract-blupax-pharmaceuticals-remote"
+    },
+    {
+      "id": "m2",
+      "bloque": "ia",
+      "nuevo": true,
+      "titulo": "Desarrolladora/or Full Stack: plataforma SaaS B2B con IA, integración de LLM y APIs",
+      "empresa": "Pallavicini Comunicación Directiva",
+      "modalidad": "Remoto freelance",
+      "iso": "2026-10-03",
+      "url": "https://www.getonbrd.com/jobs/programming/desarrolladora-pallavicini-comunicacion-directiva-remote"
+    },
+    {
+      "id": "m5",
+      "archivado": true,
+      "ing": true,
+      "motivo": "Exige título universitario en Computación o Ingeniería (verificado el 6/10)",
+      "bloque": "ia",
+      "nuevo": true,
+      "titulo": "Desarrollador Full-Stack (Node.js, React, 4+ años)",
+      "empresa": "Mediastream",
+      "modalidad": "Remoto (Argentina, Perú o México)",
+      "iso": "2026-09-29",
+      "salario": "USD 2.200 a 2.500 por mes",
+      "url": "https://www.getonbrd.com/jobs/programacion/desarrollador-full-stack-mediastream-remote-f08c"
+    },
+    {
+      "id": "m6",
+      "bloque": "ia",
+      "nuevo": true,
+      "titulo": "AI Engineer: IA generativa, agentes y RAG con Azure AI Foundry",
+      "empresa": "Grupo Mariposa",
+      "modalidad": "Remoto (7 países, confirmar Argentina)",
+      "iso": "2026-09-29",
+      "url": "https://www.getonbrd.com/jobs/machine-learning-ai/ai-engineer-senior-grupo-mariposa-remote-be51"
+    },
+    {
+      "id": "n8",
+      "bloque": "ia",
+      "titulo": "Full-Stack Developer React y Node.js (integración de IA o LLM, 5+ años)",
+      "empresa": "Improving",
+      "modalidad": "Remoto (Argentina)",
+      "iso": "2026-09-14",
+      "url": "https://www.getonbrd.com/jobs/programming/fullstack-developer-react-node-js-improving-remote"
+    },
+    {
+      "id": "n2",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Senior AI Engineer (agentes IA, MCP, Python/FastAPI)",
+      "empresa": "Niuro",
+      "modalidad": "Remoto",
+      "iso": "2026-09-24",
+      "salario": "USD 3.000 a 3.500 por mes",
+      "url": "https://www.getonbrd.com/jobs/machine-learning-ai/senior-ai-engineer-niuro-remote-803e"
+    },
+    {
+      "id": "n3",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Web App Full-Stack Engineer (funciones con LLM)",
+      "empresa": "Niuro",
+      "modalidad": "Remoto",
+      "iso": "2026-09-24",
+      "salario": "USD 2.500 a 3.000 por mes",
+      "url": "https://www.getonbrd.com/jobs/programacion/web-app-full-stack-engineer-niuro-remote-4461"
+    },
+    {
+      "id": "b1",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "AI Agent Developer",
+      "empresa": "Interfell",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.getonbrd.com/empleos/machine-learning-ai/ai-agent-developer-interfell-remote"
+    },
+    {
+      "id": "b2",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Desarrollador(a) de Automatizaciones e IA",
+      "empresa": "Jaiar Labs",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.getonbrd.com/empleos/programacion/desarrollador-a-de-automatizaciones-e-ia-jaiar-labs-remote"
+    },
+    {
+      "id": "b3",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Ingeniero/a AI / Machine Learning (Semi Senior)",
+      "empresa": "Lisit",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.getonbrd.com/jobs/machine-learning-ai/ingeniero-ai-machine-learning-lisit-remote"
+    },
+    {
+      "id": "b4",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Ingeniero de IA/ML",
+      "empresa": "Coderslab.io",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.getonbrd.com/jobs/programming/ingeniero-de-ia-ml-coderslab-io-remote"
+    },
+    {
+      "id": "b5",
+      "bloque": "ia",
+      "archivado": true,
+      "motivo": "Ya no figura entre los avisos vigentes (verificado el 5/10)",
+      "titulo": "Automations Developer",
+      "empresa": "Compara",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.getonbrd.com/empleos/programacion/automations-developer-compara-remote-2c5b"
+    },
+    {
+      "id": "r3",
+      "enlace": "busqueda",
+      "bloque": "admin",
+      "nuevo": true,
+      "prio": 3,
+      "titulo": "Analista de Facturación (Administración)",
+      "empresa": "Urbano Express Argentina",
+      "modalidad": "Híbrido",
+      "iso": "",
+      "url": "https://ar.indeed.com/q-analista-de-facturaci%C3%B3n-y-cobranzas-l-buenos-aires,-buenos-aires-empleos.html"
+    },
+    {
+      "id": "r8",
+      "bloque": "odoo",
+      "nuevo": true,
+      "prio": 1,
+      "titulo": "Analista Funcional, Odoo (parametrización de ventas, compras, contabilidad, stock)",
+      "empresa": "DG Consultores en RR.HH.",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://www.remoterocketship.com/company/dgconsultores-com-ar/jobs/analista-funcional-odoo-argentina-remote/"
+    },
+    {
+      "id": "r9",
+      "enlace": "busqueda",
+      "bloque": "odoo",
+      "nuevo": true,
+      "prio": 2,
+      "titulo": "Analista Funcional para implementación de Odoo (3+ años)",
+      "empresa": "Zivot, San Martín",
+      "modalidad": "A confirmar",
+      "iso": "",
+      "url": "https://ar.computrabajo.com/trabajo-de-analista-funcional-odoo"
+    },
+    {
+      "id": "s1",
+      "bloque": "ia",
+      "nuevo": true,
+      "prio": 1,
+      "titulo": "AI Automation Engineer (Semi Senior): automatizaciones, agentes y flujos internos",
+      "empresa": "ElevateOS",
+      "modalidad": "Remoto",
+      "iso": "",
+      "salario": "USD 1.500 a 2.000 por mes",
+      "url": "https://www.getonbrd.com/empleos/programacion/ai-automation-engineer-elevateos-remote"
+    },
+    {
+      "id": "s2",
+      "enlace": "busqueda",
+      "bloque": "odoo",
+      "nuevo": true,
+      "prio": 3,
+      "titulo": "Analista Funcional Odoo (requiere Python; estudiante o graduado en sistemas)",
+      "empresa": "Empleos IT, Rosario",
+      "modalidad": "A confirmar",
+      "iso": "",
+      "url": "https://ar.linkedin.com/jobs/view/analista-funcional-odoo-at-empleos-it-3825976235"
+    },
+    {
+      "id": "c2",
+      "bloque": "odoo",
+      "titulo": "Analista Funcional con experiencia en ODOO (Ref. 17831)",
+      "empresa": "ADN Recursos Humanos",
+      "modalidad": "Remoto",
+      "iso": "",
+      "url": "https://grabjobs.co/argentina/job/full-time/education-training/ref-17831-analista-funcional-con-experiencia-en-odoo-remoto-hiring-now-25306146"
+    }
+  ]
+}

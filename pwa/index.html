@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seguimiento de búsqueda laboral</title>
+<meta name="description" content="Listado diario de ofertas con estado: pendiente, postulado o descartado.">
+<meta name="theme-color" content="#E7E3D8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B1D19" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Búsqueda">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Seguimiento de búsqueda laboral</h1>
+    <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Los descartados se pueden quitar del listado con un botón.</p>
+    <div class="bar">
+      <button type="button" id="install" hidden>Instalar app</button>
+      <button type="button" id="export">Exportar respaldo</button>
+      <button type="button" id="import">Importar respaldo</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+    <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
+  </header>
+  <p class="aviso" id="aviso"></p>
+  <div class="tally" id="tally"></div>
+  <div id="seguimiento"></div>
+  <div id="bloques"></div>
+  <footer>Visto el <span id="fecha"></span>. Tus estados se guardan solo en este dispositivo; usá "Exportar respaldo" para pasarlos a otro. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte.</footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
