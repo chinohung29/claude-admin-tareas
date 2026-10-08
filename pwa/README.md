@@ -23,5 +23,9 @@ Recomendado: en Supabase → Authentication → URL Configuration, poner como Si
 ## Rutina diaria
 El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` avisos de hasta 15 días (si la fecha no se puede verificar se incluyen con `iso` null y la app los marca como "Fecha sin verificar") con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).
 
+## Instalación y tutorial
+- Aviso de instalación (`#instalarBanner`): en celulares, o donde el navegador ofrezca `beforeinstallprompt`. En Android/Chrome muestra el botón «Instalar» (usa el prompt nativo); en iOS/Safari explica «Compartir → Añadir a pantalla de inicio» (iOS no tiene prompt programático); en otros navegadores móviles indica el menú. No aparece si ya está instalada y «Ahora no» lo oculta 7 días. Un sitio no puede forzar la instalación sin que la persona toque el botón: es una restricción de los navegadores.
+- Tutorial de 6 pasos (`<dialog id="tutorial">`, contenido en `TUTORIAL` de `app.js`): se abre solo la primera vez que se entra en un dispositivo (`localStorage.lmh_tutorial_visto`) y se reabre con el botón «Ayuda». Cubre bienvenida, instalación, carga del CV, clasificación de ofertas, filtros y la rutina diaria.
+
 ## Probar local
 `cd pwa && python3 -m http.server 8000` y abrir http://localhost:8000 (el service worker funciona en localhost).

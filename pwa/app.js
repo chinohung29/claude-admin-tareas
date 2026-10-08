@@ -341,6 +341,7 @@ async function entrar(s) {
     return;
   }
   mostrarApp();
+  tutorialPrimeraVez();
   const cache = readJSON(CACHE_KEY, null);
   if (cache) { items = cache.items || []; state = cache.state || state; showAviso(); render(); }
   await cargar();
@@ -385,21 +386,7 @@ sb.auth.onAuthStateChange((evento, s) => {
   }
 });
 
-// Instalación y estado de conexión
-let promptInstalar = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  promptInstalar = e;
-  document.getElementById('install').hidden = false;
-});
-document.getElementById('install').addEventListener('click', async () => {
-  if (!promptInstalar) return;
-  promptInstalar.prompt();
-  await promptInstalar.userChoice;
-  promptInstalar = null;
-  document.getElementById('install').hidden = true;
-});
-window.addEventListener('appinstalled', () => { document.getElementById('install').hidden = true; });
+// Estado de conexión
 function conexion() { document.getElementById('offline').hidden = navigator.onLine; }
 window.addEventListener('online', () => { conexion(); if (session) cargar(); });
 window.addEventListener('offline', conexion);
@@ -410,3 +397,101 @@ if ('serviceWorker' in navigator) {
 }
 
 document.getElementById('fecha').textContent = TODAY.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+
+// ---- Instalación de la app (celular) ----
+let promptInstalar = null;
+const esStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const esIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const esMovil = () => esIOS() || /Android/i.test(navigator.userAgent);
+const instaladaOculta = () => { const t = Number(readJSON('lmh_instalar_off', 0)); return t && Date.now() - t < 7 * 86400000; };
+
+function actualizarInstalar() {
+  const banner = document.getElementById('instalarBanner');
+  const texto = document.getElementById('instalarTexto');
+  const si = document.getElementById('instalarSi'), como = document.getElementById('instalarComo');
+  si.hidden = como.hidden = true;
+  if (esStandalone() || instaladaOculta() || !(esMovil() || promptInstalar)) { banner.hidden = true; return; }
+  if (promptInstalar) {
+    texto.textContent = 'Instalá la app en tu dispositivo para abrirla como una aplicación, con su propio ícono y sin la barra del navegador.';
+    si.hidden = false;
+  } else if (esIOS()) {
+    texto.textContent = 'Para instalarla en tu iPhone o iPad: abrí esta página en Safari, tocá Compartir y elegí «Añadir a pantalla de inicio».';
+    como.hidden = false;
+  } else {
+    texto.textContent = 'Para instalarla: abrí el menú del navegador (los tres puntos) y elegí «Instalar app» o «Añadir a pantalla de inicio».';
+  }
+  banner.hidden = false;
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; actualizarInstalar(); });
+window.addEventListener('appinstalled', () => { promptInstalar = null; actualizarInstalar(); });
+document.getElementById('instalarSi').addEventListener('click', async () => {
+  if (!promptInstalar) return;
+  promptInstalar.prompt();
+  const r = await promptInstalar.userChoice;
+  promptInstalar = null;
+  if (r && r.outcome === 'accepted') writeJSON('lmh_instalar_off', Date.now());
+  actualizarInstalar();
+});
+document.getElementById('instalarNo').addEventListener('click', () => { writeJSON('lmh_instalar_off', Date.now()); actualizarInstalar(); });
+document.getElementById('instalarComo').addEventListener('click', () => abrirTutorial(1));
+actualizarInstalar();
+
+// ---- Tutorial ----
+const TUTORIAL = [
+  { t: 'Bienvenido', h: `<p>Esta app es tu tablero de búsqueda laboral. Cada día un agente busca ofertas que encajan con tu perfil y las deja acá, ordenadas por coincidencia, en tres bloques: <b>Administrativo</b>, <b>IA, programación y automatización</b> y <b>Odoo</b>.</p>
+    <p>En este recorrido de un minuto vas a ver cómo instalarla en el celular, cómo cargar tu CV y cómo clasificar las ofertas. Podés volver a verlo cuando quieras con el botón <b>Ayuda</b>.</p>` },
+  { t: 'Instalala en tu celular', h: `<p>Instalada, se abre como una app más, con su ícono y a pantalla completa.</p>
+    <p><b>Android (Chrome):</b> tocá <b>Instalar</b> en el aviso de abajo, o abrí el menú ⋮ y elegí «Instalar app».</p>
+    <p><b>iPhone o iPad (Safari):</b> tocá el botón <b>Compartir</b> (el cuadrado con la flecha) y elegí «Añadir a pantalla de inicio». Tiene que ser desde Safari, no desde otro navegador.</p>
+    <p>Después abrila desde el ícono. Tu sesión y tus datos se mantienen.</p>` },
+  { t: 'Cargá tu CV', h: `<p>En la sección <b>Mi perfil (CV)</b>:</p>
+    <ol><li>Tocá <b>Elegir archivo</b> y seleccioná tu CV: PDF, DOCX, TXT o MD, de hasta 8 MB.</li>
+    <li>Revisá el texto que aparece y corregilo si hace falta. El archivo se lee en tu dispositivo: <b>no se sube</b>, solo se guarda el texto.</li>
+    <li>Tocá <b>Guardar CV</b>.</li></ol>
+    <p>Si tu PDF es una imagen escaneada no tiene texto que leer: usá <b>Pegar texto</b> y pegá el contenido de tu CV.</p>
+    <p>En la próxima corrida diaria el agente lo analiza y acá vas a ver tus <b>fortalezas</b>, <b>oportunidades</b> y las búsquedas que va a hacer. Si actualizás el CV, se vuelve a analizar.</p>` },
+  { t: 'Clasificá cada oferta', h: `<p>Cada tarjeta muestra puesto, empresa, modalidad (remoto, híbrido o presencial), sueldo (<i>A convenir</i> si no figura) y la fecha. Tocá <b>abrir aviso</b> para postularte en el portal.</p>
+    <ul><li><b>Pendiente:</b> todavía no decidiste.</li>
+    <li><b>Postulado:</b> ya te postulaste. Pasa a «Seguimiento de postulados».</li>
+    <li><b>Descartado:</b> no te interesa. Sale de la lista y el agente no te la vuelve a proponer.</li>
+    <li><b>Archivar:</b> la guardás para después sin que moleste. «Restaurar» la devuelve.</li></ul>
+    <p>Si la fecha dice <i>Fecha sin verificar</i>, revisala directo en el aviso antes de postularte.</p>` },
+  { t: 'Filtros y uso diario', h: `<p>Arriba de la lista están los filtros: <b>Activas</b> (las que tenés para trabajar hoy), <b>Archivadas</b>, <b>Descartadas</b> y <b>Todas</b>. Los números te dicen cuántas hay en cada uno. Las pendientes de más de 15 días se archivan solas.</p>
+    <p>También podés <b>agregar a mano</b> una oferta que encontraste vos, con el formulario al final de cada bloque.</p>
+    <p>Sin conexión la app sigue funcionando: tus cambios se guardan en el dispositivo y se sincronizan al volver.</p>` },
+  { t: 'Tu rutina', h: `<p><b>Cada mañana</b> el agente carga las ofertas nuevas de los últimos 15 días.</p>
+    <p><b>De 10 a 12</b>, de lunes a viernes, tenés el bloque en tu calendario con aviso por mail y por notificación para postularte.</p>
+    <p>Un buen ritmo: abrí la app, clasificá lo nuevo (postular, descartar o archivar) y dejá la lista de «Activas» corta.</p>` }
+];
+let tutPaso = 0;
+function abrirTutorial(n) {
+  tutPaso = n || 0;
+  const d = document.getElementById('tutorial');
+  if (!d.open) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+  pintarTutorial();
+}
+function cerrarTutorial() {
+  const d = document.getElementById('tutorial');
+  if (d.close) d.close(); else d.removeAttribute('open');
+  try { localStorage.setItem('lmh_tutorial_visto', '1'); } catch (e) {}
+}
+function pintarTutorial() {
+  const p = TUTORIAL[tutPaso], ultimo = tutPaso === TUTORIAL.length - 1;
+  document.getElementById('tutPaso').textContent = 'Paso ' + (tutPaso + 1) + ' de ' + TUTORIAL.length;
+  document.getElementById('tutTitulo').textContent = p.t;
+  document.getElementById('tutTexto').innerHTML = p.h;
+  document.getElementById('tutPuntos').innerHTML = TUTORIAL.map((_, i) => '<span class="' + (i === tutPaso ? 'on' : '') + '"></span>').join('');
+  document.getElementById('tutAtras').hidden = tutPaso === 0;
+  document.getElementById('tutOmitir').hidden = ultimo;
+  document.getElementById('tutSiguiente').textContent = ultimo ? 'Empezar' : 'Siguiente';
+  document.getElementById('tutorial').scrollTop = 0;
+}
+document.getElementById('tutSiguiente').addEventListener('click', () => { if (tutPaso === TUTORIAL.length - 1) cerrarTutorial(); else { tutPaso++; pintarTutorial(); } });
+document.getElementById('tutAtras').addEventListener('click', () => { if (tutPaso > 0) { tutPaso--; pintarTutorial(); } });
+document.getElementById('tutOmitir').addEventListener('click', cerrarTutorial);
+document.getElementById('tutorial').addEventListener('cancel', () => { try { localStorage.setItem('lmh_tutorial_visto', '1'); } catch (e) {} });
+document.getElementById('ayuda').addEventListener('click', () => abrirTutorial(0));
+function tutorialPrimeraVez() {
+  try { if (!localStorage.getItem('lmh_tutorial_visto')) abrirTutorial(0); } catch (e) {}
+}

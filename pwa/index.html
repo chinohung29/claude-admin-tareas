@@ -40,7 +40,7 @@
     <h1>Seguimiento de búsqueda laboral</h1>
     <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Se sincroniza entre tus dispositivos.</p>
     <div class="bar">
-      <button type="button" id="install" hidden>Instalar app</button>
+      <button type="button" id="ayuda">Ayuda</button>
       <button type="button" id="logout">Cerrar sesión</button>
     </div>
     <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
@@ -65,6 +65,29 @@
   <div id="bloques"></div>
   <footer>Visto el <span id="fecha"></span>. Tus estados se sincronizan; sin conexión se guardan en el dispositivo y se suben al volver. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte.</footer>
 </div>
+<div id="instalarBanner" class="banner" role="region" aria-label="Instalar la app" hidden>
+  <p id="instalarTexto"></p>
+  <div class="banner-acciones">
+    <button type="button" id="instalarSi" hidden>Instalar</button>
+    <button type="button" id="instalarComo" hidden>Ver cómo</button>
+    <button type="button" id="instalarNo">Ahora no</button>
+  </div>
+</div>
+<dialog id="tutorial" aria-labelledby="tutTitulo">
+  <div class="tut-cuerpo">
+    <p class="tut-paso" id="tutPaso"></p>
+    <h2 id="tutTitulo"></h2>
+    <div id="tutTexto"></div>
+  </div>
+  <div class="tut-pie">
+    <div class="tut-puntos" id="tutPuntos" aria-hidden="true"></div>
+    <div class="tut-botones">
+      <button type="button" id="tutOmitir" class="linkbtn">Omitir</button>
+      <button type="button" id="tutAtras">Atrás</button>
+      <button type="button" id="tutSiguiente">Siguiente</button>
+    </div>
+  </div>
+</dialog>
 <script src="vendor/supabase.js"></script>
 <script src="cv.js"></script>
 <script src="app.js"></script>
