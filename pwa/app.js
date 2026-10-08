@@ -284,6 +284,7 @@ async function cargar() {
   render();
   vaciarPendientes();
   cargarPerfil();
+  cargarCuenta();
   return true;
 }
 
@@ -382,6 +383,9 @@ function suscribir() {
         applyEstado(p.new);
       }
       guardarCache(); render();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, p => {
+      if (p.new && p.new.id === uid()) { cuenta = p.new; renderPlan(); }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'perfil' }, p => {
       if (p.new && p.new.user_id === uid()) { perfil = p.new; renderPerfil(); render(); }
@@ -571,4 +575,79 @@ document.getElementById('eliminarCuenta').addEventListener('click', async () => 
   if (error) { alert('No se pudo eliminar la cuenta. Escribinos y la eliminamos a mano.'); return; }
   try { Object.keys(localStorage).filter(k => k.startsWith('lmh_job_')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
   await sb.auth.signOut();
+});
+
+
+// ---- Plan, cancelación y arrepentimiento ----
+let cuenta = null;
+async function cargarCuenta() {
+  const { data, error } = await sb.from('profiles').select('*').maybeSingle();
+  if (error) return;
+  cuenta = data;
+  renderPlan();
+}
+async function msgError(error) {
+  try { const r = await error.context.json(); return r.error || error.message; } catch (e) { return error.message; }
+}
+function planMsg(t) { const m = document.getElementById('planMsg'); m.hidden = !t; m.textContent = t || ''; }
+function fecha(iso) { return iso ? fmtFecha(String(iso).slice(0, 10)) : ''; }
+function renderPlan() {
+  const box = document.getElementById('planInfo');
+  const sus = document.getElementById('planSuscribir'), can = document.getElementById('planCancelar');
+  sus.hidden = can.hidden = true;
+  if (!cuenta) { box.innerHTML = ''; return; }
+  const vence = cuenta.plan_vence_el ? new Date(cuenta.plan_vence_el) : null;
+  let html;
+  if (cuenta.plan === 'pro' && cuenta.mp_preapproval_id) {
+    html = '<p class="meta"><b>Plan Pro activo.</b> Se renueva cada mes' + (cuenta.plan_desde ? ' (contratado el ' + fecha(cuenta.plan_desde) + ')' : '') + '.' +
+      (vence ? ' <b>Hay un problema con tu último cobro:</b> regularizalo en Mercado Pago antes del ' + fecha(vence.toISOString()) + ' para no perder el plan.' : '') + '</p>';
+    can.hidden = false;
+  } else if (cuenta.plan === 'pro' && vence && vence > new Date()) {
+    html = '<p class="meta"><b>Plan Pro hasta el ' + fecha(vence.toISOString()) + '.</b> No se va a renovar.</p>';
+    sus.hidden = false; sus.textContent = 'Reactivar el plan Pro · $10.000 por mes';
+  } else if (cuenta.plan === 'cancelado' || cuenta.plan === 'pro') {
+    html = '<p class="meta">Tu plan Pro terminó. Seguís con el plan gratuito.</p>';
+    sus.hidden = false; sus.textContent = 'Volver al plan Pro · $10.000 por mes';
+  } else {
+    html = '<p class="meta">Estás en el <b>plan gratuito</b>.</p>';
+    sus.hidden = false; sus.textContent = 'Pasarme al plan Pro · $10.000 por mes';
+  }
+  box.innerHTML = html;
+}
+document.getElementById('planSuscribir').addEventListener('click', async () => {
+  planMsg('Preparando el pago en Mercado Pago…');
+  const { data, error } = await sb.functions.invoke('mp-crear-suscripcion', { method: 'POST', body: {} });
+  if (error) { planMsg(await msgError(error)); return; }
+  if (data && data.init_point) { planMsg('Te llevamos a Mercado Pago. Cuando termines, volvé a la app: el plan se activa en unos minutos.'); location.href = data.init_point; }
+});
+document.getElementById('planCancelar').addEventListener('click', async () => {
+  if (!confirm('¿Cancelar la suscripción? Conservás el plan Pro hasta el fin del período que ya pagaste y no se vuelve a cobrar.')) return;
+  planMsg('Cancelando…');
+  const { data, error } = await sb.functions.invoke('mp-cancelar-suscripcion', { method: 'POST', body: {} });
+  if (error) { planMsg(await msgError(error)); return; }
+  planMsg('Suscripción cancelada. Conservás el plan Pro hasta el ' + fecha(data && data.plan_vence_el) + '.');
+  cargarCuenta();
+});
+
+// Botón de arrepentimiento (Res. 424/2020): visible en la pantalla de inicio y en la app.
+const dlgArr = document.getElementById('arrepentimiento');
+function arrMsg(t) { const m = document.getElementById('arrMsg'); m.hidden = !t; m.textContent = t || ''; }
+document.querySelectorAll('[data-arrep]').forEach(b => b.addEventListener('click', () => {
+  const conSesion = !!session;
+  document.getElementById('arrAccion').hidden = !conSesion;
+  document.getElementById('arrConfirmar').hidden = !conSesion;
+  arrMsg(conSesion ? '' : 'Para revocar tu contratación, iniciá sesión con la cuenta con la que contrataste y volvé a tocar este botón.');
+  document.getElementById('arrMotivo').value = '';
+  if (dlgArr.showModal) dlgArr.showModal(); else dlgArr.setAttribute('open', '');
+}));
+document.getElementById('arrCerrar').addEventListener('click', () => { if (dlgArr.close) dlgArr.close(); else dlgArr.removeAttribute('open'); });
+document.getElementById('arrConfirmar').addEventListener('click', async () => {
+  const btn = document.getElementById('arrConfirmar');
+  btn.disabled = true; arrMsg('Procesando tu solicitud…');
+  const { data, error } = await sb.functions.invoke('mp-arrepentimiento', { method: 'POST', body: { motivo: document.getElementById('arrMotivo').value.trim() } });
+  btn.disabled = false;
+  if (error) { arrMsg(await msgError(error)); return; }
+  document.getElementById('arrAccion').hidden = true; btn.hidden = true;
+  arrMsg('Listo: revocaste tu contratación. Tu código de identificación es ' + data.numero_reclamo + '. Guardalo. El plan Pro se cortó y vamos a gestionar la devolución de lo pagado por el mismo medio de pago.');
+  cargarCuenta();
 });

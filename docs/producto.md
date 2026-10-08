@@ -5,7 +5,7 @@ Estado: entorno de pruebas (proyecto Supabase `busqueda-laboral`, plan gratuito)
 ## Decisiones tomadas
 1. **Sin prompts de usuario.** El usuario se registra, carga su CV y clasifica ofertas. Un agente de servidor hace el resto. La rutina diaria con prompt (`prompt-rutina-diaria.md`) queda como solución provisoria.
 2. **Fuentes.** Portales de empleo de Argentina: Computrabajo, Indeed, Bumeran y LinkedIn. El producto solo entrega enlaces: el usuario completa la postulación a mano en el portal. No lee ni copia el contenido de los portales.
-3. **Cobro.** $10.000 por mes en pesos, con suscripción de Mercado Pago, igual que LMH Flow (ver guía abajo).
+3. **Cobro.** $10.000 por mes en pesos, con suscripción de Mercado Pago, igual que LMH Flow (ver guía abajo). Producto ofrecido por una persona humana. Las búsquedas son solo en Argentina.
 4. **Claves y planes de pago** al lanzar: clave de la API de Claude y Supabase Pro.
 5. **Cuenta de pruebas.** `lamh2903@gmail.com` es un usuario más; sus datos de prueba se le asignan al confirmar el mail.
 
@@ -13,6 +13,9 @@ Estado: entorno de pruebas (proyecto Supabase `busqueda-laboral`, plan gratuito)
 - Modelo multiusuario con permisos por usuario (`supabase/schema.sql`).
 - **Enlaces de búsqueda a los 4 portales** por bloque, con las palabras clave del análisis del CV (o de ejemplo mientras no haya CV). Indeed (`fromage=14`) y LinkedIn (`f_TPR`) filtran los últimos 15 días; en Computrabajo y Bumeran no se verificó un filtro de fecha por URL. Los formatos de URL de Computrabajo y Bumeran no están documentados oficialmente: revisar que sigan funcionando.
 - Registro con aceptación obligatoria de Términos y Privacidad (validada en el servidor), consentimiento separado para tratar el CV con IA y transferirlo al exterior, descarga de datos y eliminación de cuenta. Borradores legales en `docs/legal/` y páginas `privacidad.html` y `terminos.html`.
+
+- **Cobro y derechos del consumidor** (funciones desplegadas en el proyecto de pruebas, sin probar con Mercado Pago real): `mp-crear-suscripcion` ($10.000 por mes, `PRECIO_PRO_ARS` para cambiar el precio), `mp-webhook` (revalida cada aviso contra la API y aplica 10 días de gracia si falla un cobro), `mp-cancelar-suscripcion` (baja por la misma app; el plan sigue hasta el fin del período pagado), `mp-arrepentimiento` (botón de arrepentimiento: dentro de los 10 días corridos, cancela y corta el plan en el momento, entrega al instante un código `ARR-…` y registra la solicitud para devolver el pago a mano). La tarea diaria `bajar_planes_vencidos` (06:00 UTC) pasa a `cancelado` los planes vencidos. La lógica de decisión del webhook tiene pruebas (`supabase/functions/mp-webhook/decision.test.mts`).
+- Sección «Mi plan» en la app y botón de arrepentimiento destacado en la pantalla de inicio y en la cuenta.
 
 ## Fuentes de ofertas: capas
 **Capa 1 (hecha): enlaces a las búsquedas.** Gratis, sin claves, sin riesgo de términos de uso.
@@ -36,7 +39,8 @@ Lo que necesito que hagas vos (verificá cada paso en la documentación de Merca
 3. Copiar el **Access Token de prueba** y cargarlo como secreto `MP_ACCESS_TOKEN` en Supabase (Edge Functions → Secrets). También `APP_URL` (`https://busqueda-laboral-lmh.netlify.app`).
 4. Cuando las funciones estén desplegadas, cargar en la aplicación de Mercado Pago la **URL del webhook** (la de `mp-webhook`) y activar los eventos de suscripciones y pagos.
 5. Probar una suscripción con la cuenta compradora de prueba y tarjetas de prueba.
-Yo escribo y despliego las funciones, y las pruebo apenas el secreto esté cargado. El botón de arrepentimiento (Resolución 424/2020) se implementa en este paso.
+Las funciones ya están desplegadas; faltan los secretos y probarlas con la cuenta de prueba. URL del webhook para cargar en Mercado Pago: `https://bclqrmeeqssvqovkvvkz.supabase.co/functions/v1/mp-webhook`.
+Qué probar con la cuenta compradora: (a) suscribirse desde «Mi plan» y volver a la app; (b) cancelar la suscripción; (c) usar el botón de arrepentimiento dentro de los 10 días y comprobar el código, que el plan se corta y que aparece la solicitud en la tabla `solicitudes_arrepentimiento`; (d) un cobro fallido, para ver la gracia de 10 días.
 
 ## Producción (guía)
 1. **Proyecto de Supabase de producción** en plan Pro, separado del de pruebas. Ejecutar `supabase/schema.sql` (sin los datos de prueba).
@@ -49,7 +53,7 @@ Yo escribo y despliego las funciones, y las pruebo apenas el secreto esté carga
 
 ## Pendiente, en este orden
 1. Probar la capa 2 con una clave de prueba de JSearch y armar el agente (`agente-diario`): analiza el CV una vez, busca, puntúa por perfil, guarda en `ofertas` y avisa. Sin clave de Claude usa un modo de pruebas por palabras clave.
-2. Cobro con Mercado Pago (guía de arriba) y botón de arrepentimiento.
+2. Probar el cobro con Mercado Pago de prueba (guía de arriba). Definir qué limita el plan gratuito: hoy el plan se registra pero todavía no restringe funciones.
 3. Revisión legal por un abogado e inscripción de la base en la AAIP.
 4. Producción.
 

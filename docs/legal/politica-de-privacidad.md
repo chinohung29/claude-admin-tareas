@@ -2,10 +2,10 @@
 
 Versión 2026-10-v1 · Última actualización: [FECHA]
 
-> BORRADOR: completar los datos entre corchetes y revisar con un abogado antes de publicar.
+> BORRADOR: completar los datos entre corchetes y revisar con un abogado antes de publicar. Aunque el servicio lo ofrezca una persona humana, la normativa de datos personales y de defensa del consumidor pide identificar a quien trata los datos y vende el servicio (nombre, un domicilio y un medio de contacto): confirmar con el abogado qué datos exactos hacen falta.
 
 ## 1. Quién es el responsable de tus datos
-El responsable del tratamiento es **[RAZÓN SOCIAL O NOMBRE Y APELLIDO]**, CUIT **[CUIT]**, con domicilio en **[DOMICILIO COMPLETO, CIUDAD, PROVINCIA]** (en adelante, "nosotros").
+El responsable del tratamiento es **[NOMBRE Y APELLIDO]**, persona humana, **[CUIL/CUIT, A CONFIRMAR CON ABOGADO]**, con domicilio en **[DOMICILIO A CONFIRMAR CON ABOGADO, CIUDAD, PROVINCIA]** (en adelante, "nosotros").
 Contacto para temas de privacidad: **[EMAIL DE PRIVACIDAD]**.
 Base de datos inscripta en el Registro Nacional de Bases de Datos Personales de la Agencia de Acceso a la Información Pública (AAIP): **[N° DE INSCRIPCIÓN, A COMPLETAR]**.
 
@@ -20,7 +20,7 @@ Base de datos inscripta en el Registro Nacional de Bases de Datos Personales de 
 **Datos sensibles.** No necesitamos datos sobre tu salud, origen racial o étnico, opiniones políticas, convicciones religiosas o morales, afiliación sindical o vida sexual, y nadie puede obligarte a darlos (art. 7 de la Ley 25.326). Te pedimos que no los incluyas en tu CV. Antes de guardar tu CV podés revisar y borrar cualquier dato del texto.
 
 ## 3. Para qué los usamos
-1. Darte el servicio: mostrarte ofertas de empleo acordes a tu perfil, con el enlace para que te postules vos.
+1. Darte el servicio: mostrarte ofertas de empleo acordes a tu perfil, con el enlace para que te postules vos. **Buscamos ofertas únicamente en portales de empleo de Argentina.**
 2. Analizar tu CV con inteligencia artificial para detectar tus fortalezas y ordenar las búsquedas y las ofertas.
 3. Gestionar tu suscripción y los cobros.
 4. Atender tus consultas y mantener la seguridad del servicio.
@@ -47,7 +47,7 @@ Podemos también comunicar datos si una autoridad competente lo exige conforme a
 Algunos de estos proveedores están fuera de Argentina, en países que pueden no tener un nivel de protección adecuado según la AAIP. Solo transferimos tus datos con tu **consentimiento expreso**, que te pedimos al cargar tu CV, y con contratos con esos proveedores que incluyen las cláusulas contractuales modelo aprobadas por la AAIP **[CONFIRMAR QUE ESTÁN FIRMADOS]**.
 
 ## 7. Cuánto tiempo los conservamos
-Mientras tu cuenta esté activa. Si la eliminás, borramos tu CV, tu perfil, tus estados y tus ofertas de nuestra base de datos. Conservamos únicamente lo que la ley nos obliga a guardar (por ejemplo, datos de facturación y pagos, por **[PLAZO A DEFINIR CON CONTADOR]**) y la constancia de tus consentimientos por **[PLAZO A DEFINIR CON ABOGADO]**. Las copias de seguridad se eliminan en **[PLAZO, POR EJEMPLO 30 DÍAS]**.
+Mientras tu cuenta esté activa. Si la eliminás, borramos tu CV, tu perfil, tus estados y tus ofertas de nuestra base de datos. Conservamos únicamente lo que la ley nos obliga a guardar: datos de facturación y pagos (por **[PLAZO A DEFINIR CON CONTADOR]**), la constancia de tus consentimientos y, si usás el botón de arrepentimiento, la constancia de esa solicitud (email, fecha, código y estado de la devolución), por **[PLAZO A DEFINIR CON ABOGADO]**. Las copias de seguridad se eliminan en **[PLAZO, POR EJEMPLO 30 DÍAS]**.
 
 ## 8. Tus derechos
 Como titular de los datos podés ejercer, de forma gratuita, los derechos de **acceso, rectificación, actualización y supresión** (arts. 14 a 16 de la Ley 25.326), y pedir que no se usen tus datos para fines que no aceptaste.

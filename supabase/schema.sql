@@ -38,6 +38,7 @@ create table public.profiles (
   plan text not null default 'gratis' check (plan in ('gratis', 'pro', 'cancelado')),
   plan_vence_el timestamptz,
   mp_preapproval_id text,
+  plan_desde timestamptz,
   creado_el timestamptz not null default now()
 );
 
@@ -123,6 +124,42 @@ grant select on public.perfil to authenticated;
 grant insert (user_id, cv_nombre, cv_texto, cv_actualizado) on public.perfil to authenticated;
 grant update (user_id, cv_nombre, cv_texto, cv_actualizado) on public.perfil to authenticated;
 
+-- Registro de consentimientos: solo se agregan filas (sin update ni delete para el usuario).
+create table public.consentimientos (
+  id bigint generated always as identity primary key,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  tipo text not null check (tipo in ('terminos_privacidad', 'cv_ia_transferencia')),
+  version text not null,
+  origen text not null check (origen in ('registro', 'carga_cv')),
+  aceptado_el timestamptz not null default now()
+);
+create index consentimientos_user_idx on public.consentimientos (user_id);
+alter table public.consentimientos enable row level security;
+create policy consentimientos_leer on public.consentimientos
+  for select to authenticated using ((select auth.uid()) = user_id);
+create policy consentimientos_agregar on public.consentimientos
+  for insert to authenticated with check ((select auth.uid()) = user_id);
+revoke all on public.consentimientos from anon;
+grant select, insert on public.consentimientos to authenticated;
+
+-- Constancia de cada solicitud de arrepentimiento (Resolución 424/2020). Solo las crea el servidor
+-- (función mp-arrepentimiento). Se conserva aunque se elimine la cuenta (user_id queda en null).
+create table public.solicitudes_arrepentimiento (
+  numero_reclamo text primary key default ('ARR-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8))),
+  user_id uuid references auth.users (id) on delete set null,
+  email text not null,
+  plan text,
+  mp_preapproval_id text,
+  motivo text,
+  solicitado_el timestamptz not null default now(),
+  estado text not null default 'pendiente_reintegro' check (estado in ('pendiente_reintegro', 'reintegrado', 'rechazada'))
+);
+alter table public.solicitudes_arrepentimiento enable row level security;
+create policy arrepentimiento_propio on public.solicitudes_arrepentimiento
+  for select to authenticated using ((select auth.uid()) = user_id);
+revoke all on public.solicitudes_arrepentimiento from anon, authenticated;
+grant select on public.solicitudes_arrepentimiento to authenticated;
+
 -- Alta de cuenta: crea el perfil. Al confirmarse el mail del dueño de pruebas, hereda los datos de prueba.
 create or replace function public.handle_new_user()
 returns trigger
@@ -130,8 +167,15 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v text := new.raw_user_meta_data ->> 'acepto_tyc_version';
 begin
+  if v is null or length(trim(v)) = 0 then
+    raise exception 'Para crear la cuenta tenés que aceptar los Términos y Condiciones y la Política de Privacidad.';
+  end if;
   insert into public.profiles (id, email) values (new.id, new.email) on conflict (id) do nothing;
+  insert into public.consentimientos (user_id, tipo, version, origen)
+    values (new.id, 'terminos_privacidad', left(v, 40), 'registro');
   return new;
 end;
 $$;
@@ -165,4 +209,26 @@ create trigger reclamar_datos_de_prueba
   after insert or update of email_confirmed_at on auth.users
   for each row execute function public.reclamar_datos_de_prueba();
 
-alter publication supabase_realtime add table public.estados, public.perfil, public.profiles;
+-- Plan vencido: la tarea diaria baja a 'cancelado' los planes Pro cuyo vencimiento ya pasó
+-- (cancelaciones voluntarias al terminar el período pagado, o cobros fallidos que vencieron la gracia de 10 días).
+create or replace function public.bajar_planes_vencidos()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  n integer;
+begin
+  update public.profiles
+     set plan = 'cancelado'
+   where plan = 'pro' and plan_vence_el is not null and plan_vence_el < now();
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+revoke execute on function public.bajar_planes_vencidos() from public, anon, authenticated;
+create extension if not exists pg_cron;
+select cron.schedule('bajar-planes-vencidos', '0 6 * * *', 'select public.bajar_planes_vencidos()');
+
+alter publication supabase_realtime add table public.estados, public.perfil, public.profiles, public.consentimientos;

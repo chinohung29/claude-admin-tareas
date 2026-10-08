@@ -135,3 +135,15 @@ details.portales summary { cursor: pointer; font-size: 12.5px; color: var(--ink-
 .portales-links { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
 a.btn-portal { font-size: 12.5px; padding: 6px 11px; border-radius: var(--radius); border: 1px solid var(--ink-soft); background: var(--ink); color: var(--paper); text-decoration: none; }
 a.btn-portal:hover { opacity: .9; }
+
+button.btn-arrepentimiento { font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: var(--radius); border: 2px solid var(--descartado); background: var(--descartado-bg); color: var(--descartado); cursor: pointer; }
+button.btn-arrepentimiento:hover { filter: brightness(0.97); }
+#plan .bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 0; }
+#plan .bar button:not(.btn-arrepentimiento) { font-family: inherit; font-size: 12.5px; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+#plan .bar button#planSuscribir { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+dialog#arrepentimiento { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto; }
+dialog#arrepentimiento::backdrop { background: rgba(0,0,0,.55); }
+dialog#arrepentimiento h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 22px; margin: 0 0 10px; }
+dialog#arrepentimiento p { font-size: 14px; line-height: 1.55; }
+dialog#arrepentimiento textarea { width: 100%; font-family: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); margin-top: 4px; }
+#arrConfirmar { background: var(--descartado-bg) !important; color: var(--descartado) !important; border-color: var(--descartado) !important; }

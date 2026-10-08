@@ -16,6 +16,7 @@ Cada tabla lleva `user_id` y los permisos (RLS) dejan a cada usuario ver y escri
 - `manuales`: ofertas agregadas a mano desde la app.
 - `perfil`: una fila por usuario con `cv_nombre`, `cv_texto` y `cv_actualizado` (el archivo se lee en el navegador; no se sube). El agente escribe `analisis`, `analisis_de_cv` y `analisis_actualizado`; la app no puede escribir esas columnas.
 - `consentimientos`: constancia de qué se aceptó, versión y fecha (solo se agregan filas). El registro exige aceptar términos y privacidad (lo valida el servidor); guardar el CV exige un consentimiento aparte para IA y transferencia al exterior.
+- `solicitudes_arrepentimiento`: constancia de cada revocación (código `ARR-…`, estado de la devolución). Solo la escribe el servidor.
 - `legado_*`: datos de prueba que se asignan a `lamh2903@gmail.com` al confirmar su mail (cerradas a los usuarios).
 - La clave `sb_publishable_…` del código es pública por diseño.
 
@@ -27,8 +28,8 @@ Va a ser reemplazada por el agente automático descrito en `../docs/producto.md`
 
 ## Portales, legales y datos del usuario
 - Cada bloque tiene «Buscar en los portales de empleo»: enlaces a Computrabajo, Indeed, Bumeran y LinkedIn con las palabras clave del análisis del CV. No se lee ni copia nada de los portales.
-- `terminos.html` y `privacidad.html` se generan desde `docs/legal/*.md` (borradores: los datos a completar salen resaltados). Para regenerarlos hay que volver a convertir los `.md`.
-- «Descargar mis datos» (archivo JSON con todo) y «Eliminar mi cuenta» (función `eliminar-cuenta` del servidor, borra la cuenta y sus datos en cascada).
+- `terminos.html` y `privacidad.html` se generan desde `docs/legal/*.md` (borradores: los datos a completar salen resaltados). Se regeneran con `python3 scripts/generar-legales.py`.
+- «Descargar mis datos» (archivo JSON con todo) y «Mi plan»: suscribirse (Mercado Pago), cancelar, y botón de arrepentimiento (visible también en la pantalla de inicio). «Eliminar mi cuenta» (función `eliminar-cuenta` del servidor, borra la cuenta y sus datos en cascada).
 
 ## Instalación y tutorial
 - Aviso de instalación (`#instalarBanner`): en celulares, o donde el navegador ofrezca `beforeinstallprompt`. En Android/Chrome muestra el botón «Instalar» (usa el prompt nativo); en iOS/Safari explica «Compartir → Añadir a pantalla de inicio» (iOS no tiene prompt programático); en otros navegadores móviles indica el menú. No aparece si ya está instalada y «Ahora no» lo oculta 7 días. Un sitio no puede forzar la instalación sin que la persona toque el botón: es una restricción de los navegadores.

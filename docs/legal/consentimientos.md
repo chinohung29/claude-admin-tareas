@@ -8,7 +8,7 @@ Versión 2026-10-v1. Se registran en la tabla `consentimientos` (usuario, tipo, 
 Tipo `terminos_privacidad`, origen `registro`. El servidor rechaza la creación de la cuenta si no viene la versión aceptada (función `handle_new_user`).
 
 ## 2. Al guardar el CV (obligatorio para usar esa función, casilla sin marcar de entrada)
-> Doy mi **consentimiento expreso** para que el texto de mi CV se trate con inteligencia artificial para analizar mi perfil y ordenar ofertas, y para que se transfiera a proveedores ubicados en el exterior (Estados Unidos y Brasil), según la **Política de Privacidad**. Puedo retirar este consentimiento eliminando mi CV o mi cuenta.
+> Doy mi **consentimiento expreso** para que el texto de mi CV se trate con inteligencia artificial para analizar mi perfil y ordenar ofertas, y para que se transfiera a proveedores ubicados en el exterior (el proveedor de IA, en Estados Unidos, y la base de datos, en Brasil), según la **Política de Privacidad**. Puedo retirar este consentimiento eliminando mi CV o mi cuenta.
 
 Tipo `cv_ia_transferencia`, origen `carga_cv`. Consentimiento separado del anterior para que sea específico, libre e informado (arts. 5 y 6 de la Ley 25.326); no se usa para marketing ni se condiciona a otros servicios.
 

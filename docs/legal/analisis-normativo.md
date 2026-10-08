@@ -24,17 +24,24 @@ Notas:
 | Norma | Qué exige | Cómo lo resolvemos |
 |---|---|---|
 | Ley 24.240 y Código Civil y Comercial (contratos de consumo y a distancia) | Información clara y completa, trato digno, cláusulas no abusivas, jurisdicción del domicilio del consumidor. | Términos y Condiciones (borrador) en español, precio y renovación a la vista, jurisdicción del consumidor. |
-| Resolución 424/2020 (Botón de arrepentimiento) | Enlace visible en la página de inicio para revocar dentro de 10 días corridos (art. 34 Ley 24.240, art. 1110 CCyC); código de identificación dentro de 24 horas. | **Falta implementarlo** junto con el cobro (LMH Flow ya tiene la función `mp-arrepentimiento` como modelo). |
-| Ley 24.240 art. 10 ter, Resolución 316/2018 y Disposición 357/2021 (Botón de baja) | La baja se debe poder hacer por el mismo medio de la contratación. Las resoluciones listan rubros puntuales **[verificar si nuestro rubro está listado]**. | Cancelar la suscripción y eliminar la cuenta desde la app, sin trámites. |
+| Resolución 424/2020 (Botón de arrepentimiento) | Enlace visible en la página de inicio para revocar dentro de 10 días corridos (art. 34 Ley 24.240, art. 1110 CCyC); código de identificación dentro de 24 horas. | **Implementado**: botón destacado en la pantalla de inicio y en la cuenta; la función `mp-arrepentimiento` cancela la suscripción, corta el plan, entrega al instante el código (`ARR-…`) y registra la solicitud para gestionar la devolución. Sin probar con Mercado Pago real. |
+| Ley 24.240 art. 10 ter, Resolución 316/2018 y Disposición 357/2021 (Botón de baja) | La baja se debe poder hacer por el mismo medio de la contratación. Las resoluciones listan rubros puntuales **[verificar si nuestro rubro está listado]**. | **Implementado**: «Cancelar suscripción» dentro de la app (función `mp-cancelar-suscripcion`), sin trámites ni penalidad; el usuario conserva el plan hasta el fin del período pagado. También «Eliminar mi cuenta». |
 | Precio y facturación | Registro fiscal y comprobante por cada cobro. | **Consultar con un contador** (régimen de ARCA, factura electrónica, IVA y Ingresos Brutos). No investigado. |
 
-## 3. Qué hay que hacer antes de lanzar (fuera del código)
+## 3. Producto ofrecido por una persona humana
+Que el servicio lo ofrezca una persona humana (no una sociedad) no lo saca del alcance de estas normas:
+- **Datos personales:** la Ley 25.326 rige para personas humanas y jurídicas que traten datos. Quien tiene una base de datos de terceros con fines comerciales debe identificarse como responsable e inscribirla en la AAIP; el nombre y un domicilio de contacto son parte de esa identificación **[verificar si existe alguna excepción para casos de pequeña escala]**.
+- **Consumidores:** vender un servicio de forma habitual y a distancia te hace "proveedor" frente a los consumidores, y las normas piden informar tu identidad y un domicilio y medio de contacto **[verificar la norma exacta y qué datos fiscales hacen falta]**.
+- **Fiscal:** cobrar $10.000 por mes de forma habitual es una actividad que normalmente requiere inscripción en ARCA (por ejemplo, monotributo) y emitir comprobante por cada cobro. **No investigado: consultar con un contador.**
+En los borradores se reemplazó "razón social" por "persona humana" y se dejaron como datos a confirmar con el abogado el CUIL/CUIT y el domicilio; se pueden ajustar según lo que él indique.
+
+## 4. Qué hay que hacer antes de lanzar (fuera del código)
 1. Que un abogado revise los tres documentos de `docs/legal/` y complete los datos entre corchetes.
 2. Inscribir la base en el Registro Nacional de Bases de Datos (AAIP).
 3. Firmar o aceptar los contratos con cláusulas modelo con Supabase, Netlify, Anthropic y el proveedor de correo (y revisar los términos de uso de la API de IA, por ejemplo qué hacen con los datos enviados).
 4. Definir con un contador la situación fiscal y la facturación.
 5. Revisar las condiciones comerciales de las fuentes de ofertas que se contraten (ver `docs/producto.md`).
-6. Implementar el botón de arrepentimiento y la gestión de la baja junto con Mercado Pago.
+6. Probar el botón de arrepentimiento y la cancelación con una cuenta de prueba de Mercado Pago, y definir el plazo de devolución (el reintegro se hace a mano desde Mercado Pago).
 
 ## Fuentes consultadas
 Texto de la Resolución 424/2020 en argentina.gob.ar; página de obligaciones de los responsables de bases de datos de la AAIP; trámite de inscripción de base privada en Trámites a Distancia; notas de estudios jurídicos sobre transferencias internacionales y cláusulas modelo (Resolución 198/2023); notas sobre Resolución 316/2018 y Disposición 357/2021; notas sobre los proyectos de reforma de datos personales de 2026.
