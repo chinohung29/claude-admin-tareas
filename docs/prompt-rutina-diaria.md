@@ -18,7 +18,7 @@ Dividir todo en 3 bloques (`bloque` = `admin`, `ia`, `odoo`), ajustados a lo que
 3. `odoo`: analista funcional y analistas con experiencia en uso de Odoo (no partner) en implementación de módulos contable-administrativo, stock, fabricación, CRM y proyectos. Excluir junior y los que exijan ser implementadora o partner certificado.
 
 ## Paso 3: qué ofertas entran
-- Antigüedad no mayor a 15 días (excluyente). Si no se puede verificar la fecha de publicación, no incluirla.
+- Antigüedad no mayor a 15 días (excluyente). Si la fecha de publicación se puede verificar y supera los 15 días, no incluirla. Si no se puede verificar (por ejemplo, porque el portal bloquea la lectura), sí incluirla, dejando `iso` en null: la app la muestra marcada como "Fecha sin verificar". En ese caso preferir avisos que el buscador del portal muestre como recientes (de la última semana o publicados "hace X días" con X menor o igual a 15).
 - No proponer de nuevo ninguna oferta cuyo id o link ya esté en `estados` como `descartado` o con `archived = true`, ni repetir las que ya están en `ofertas`.
 - Cada oferta lleva el link directo al aviso (no a una búsqueda) para completar la postulación.
 

@@ -21,7 +21,7 @@ Email y contraseña (`signInWithPassword`). La cuenta se crea una sola vez desde
 Recomendado: en Supabase → Authentication → URL Configuration, poner como Site URL `https://busqueda-laboral-lmh.netlify.app` (por defecto apunta a localhost; solo afecta a mails de Auth).
 
 ## Rutina diaria
-El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` solo avisos verificados de hasta 15 días con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).
+El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` avisos de hasta 15 días (si la fecha no se puede verificar se incluyen con `iso` null y la app los marca como "Fecha sin verificar") con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).
 
 ## Probar local
 `cd pwa && python3 -m http.server 8000` y abrir http://localhost:8000 (el service worker funciona en localhost).
