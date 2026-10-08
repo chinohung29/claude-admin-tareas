@@ -1,8 +1,9 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import {
   BLOQUES, DIAS_MAXIMOS, type Bloque, type ResultadoSerp,
-  diasDePublicacion, elegirEnlace, esDeArgentina, fechaIso, idOferta, modalidad, palabrasClave, puntuar, terminos,
+  diasDePublicacion, elegirEnlace, esDeArgentina, esJunior, fechaIso, idOferta, modalidad, palabrasClave, puntuar, terminos,
 } from './logica.ts'
+import { analizarCV } from './analisis.ts'
 
 // Agente de ofertas: busca en Google Jobs (vía SerpApi) ofertas de Argentina para cada bloque del usuario,
 // las filtra (solo Argentina o remotas, hasta 15 días, sin repetir ni volver a proponer descartadas/archivadas)
@@ -19,6 +20,7 @@ const SERP_URL = 'https://serpapi.com/search.json'
 const HORAS_ENTRE_BUSQUEDAS = Number(Deno.env.get('AGENTE_HORAS_ENTRE_BUSQUEDAS') ?? '6')
 const LIMITE_MENSUAL = Number(Deno.env.get('SERPAPI_LIMITE_MENSUAL') ?? '240') // plan gratuito: 250 por mes
 const NUEVAS_POR_BLOQUE = 15
+const MINUTOS_CV_NUEVO = 30 // con un CV nuevo se puede buscar antes de las horas de espera, pero no más seguido que esto
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,13 +50,31 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
   const db = admin()
   const ahora = new Date()
 
-  // Frecuencia: no más de una corrida cada HORAS_ENTRE_BUSQUEDAS horas por usuario.
+  const { data: perfil } = await db.from('perfil').select('cv_texto, cv_actualizado, analisis, analisis_de_cv').eq('user_id', userId).maybeSingle()
+
+  // Análisis del CV: se rehace si no existe o si el CV es más nuevo que el análisis.
+  let analisis: Record<string, any> | null = perfil?.analisis ?? null
+  let analizado = false
+  if (perfil?.cv_texto && (!analisis || !perfil.analisis_de_cv || new Date(perfil.analisis_de_cv) < new Date(perfil.cv_actualizado ?? 0))) {
+    analisis = analizarCV(perfil.cv_texto)
+    const { error: errAnalisis } = await db.from('perfil').update({
+      analisis, analisis_actualizado: ahora.toISOString(), analisis_de_cv: perfil.cv_actualizado ?? ahora.toISOString(),
+    }).eq('user_id', userId)
+    if (errAnalisis) console.error('agente-ofertas: no se pudo guardar el análisis', errAnalisis.message)
+    else analizado = true
+  }
+  // Frecuencia: no más de una corrida cada HORAS_ENTRE_BUSQUEDAS horas por usuario. Excepción: si cargó un CV
+  // después de la última búsqueda, se busca de nuevo (como mínimo MINUTOS_CV_NUEVO después de la anterior).
   const desde = new Date(ahora.getTime() - HORAS_ENTRE_BUSQUEDAS * 3_600_000).toISOString()
   const { data: recientes } = await db.from('busquedas').select('ejecutado_el').eq('user_id', userId).is('error', null)
     .gte('ejecutado_el', desde).order('ejecutado_el', { ascending: false }).limit(1)
   if (recientes?.length) {
-    const proxima = new Date(new Date(recientes[0].ejecutado_el).getTime() + HORAS_ENTRE_BUSQUEDAS * 3_600_000).toISOString()
-    return { userId, omitido: 'reciente', proxima_busqueda: proxima }
+    const ultima = new Date(recientes[0].ejecutado_el).getTime()
+    const cvNuevo = !!perfil?.cv_actualizado && new Date(perfil.cv_actualizado).getTime() > ultima && ahora.getTime() - ultima >= MINUTOS_CV_NUEVO * 60_000
+    if (!cvNuevo) {
+      const proxima = new Date(ultima + HORAS_ENTRE_BUSQUEDAS * 3_600_000).toISOString()
+      return { userId, omitido: 'reciente', proxima_busqueda: proxima, analizado }
+    }
   }
 
   // Cupo mensual de SerpApi (compartido por todos los usuarios).
@@ -62,8 +82,7 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
   const { count: usadas } = await db.from('busquedas').select('id', { count: 'exact', head: true }).gte('ejecutado_el', inicioMes)
   if ((usadas ?? 0) + BLOQUES.length > LIMITE_MENSUAL) return { userId, omitido: 'cupo_mensual', usadas }
 
-  const [{ data: perfil }, { data: ofertas }, { data: estados }] = await Promise.all([
-    db.from('perfil').select('cv_texto, analisis').eq('user_id', userId).maybeSingle(),
+  const [{ data: ofertas }, { data: estados }] = await Promise.all([
     db.from('ofertas').select('id').eq('user_id', userId),
     db.from('estados').select('job_id, status, archived').eq('user_id', userId),
   ])
@@ -72,21 +91,24 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
     ...(estados ?? []).filter((e) => e.status === 'descartado' || e.archived === true).map((e) => e.job_id),
   ])
   const cv = terminos(perfil?.cv_texto ?? '')
+  const aceptaJunior = analisis?.seniority === 'junior'
   const diaDelAnio = Math.floor((ahora.getTime() - Date.UTC(ahora.getUTCFullYear(), 0, 0)) / 86_400_000)
 
-  const resumen: Record<string, unknown> = { userId, bloques: {} as Record<string, unknown> }
+  const resumen: Record<string, unknown> = { userId, analizado, nombres: Object.fromEntries((analisis?.bloques ?? []).map((b: any) => [b.id, b.nombre])), bloques: {} as Record<string, unknown> }
   const nuevasTotales: Record<string, unknown>[] = []
 
   for (const bloque of BLOQUES as readonly Bloque[]) {
-    const lista = palabrasClave(perfil?.analisis, bloque)
+    const lista = palabrasClave(analisis, bloque)
+    if (!lista.length) continue // el CV no apunta a este rubro: no se busca ni se gasta cupo
     const consulta = lista[diaDelAnio % lista.length] // una palabra por bloque y por día, rotando para variar
     const { resultados, error, crudo } = await buscarEnSerpApi(consulta, apiKey)
-    const descartes = { no_argentina: 0, antiguas: 0, sin_enlace: 0, ya_vistas: 0 }
+    const descartes = { no_argentina: 0, antiguas: 0, junior: 0, sin_enlace: 0, ya_vistas: 0 }
     const candidatas: { fila: Record<string, unknown>; puntaje: number }[] = []
 
     for (const r of resultados) {
       if (!r?.title) continue
       if (!esDeArgentina(r)) { descartes.no_argentina++; continue }
+      if (!aceptaJunior && esJunior(r)) { descartes.junior++; continue }
       const posted = r.detected_extensions?.posted_at ?? (r.extensions ?? []).find((e) => /hace|ago|hoy|today|ayer/i.test(e))
       const dias = diasDePublicacion(posted)
       if (dias !== null && dias > DIAS_MAXIMOS) { descartes.antiguas++; continue }

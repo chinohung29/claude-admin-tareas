@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { diasDePublicacion, esDeArgentina, modalidad, elegirEnlace, idOferta, palabrasClave, puntuar, terminos, fechaIso, KW_DEFECTO } from './logica.ts'
+import { analizarCV, detectarSeniority } from './analisis.ts'
+import { esJunior, diasDePublicacion, esDeArgentina, modalidad, elegirEnlace, idOferta, palabrasClave, puntuar, terminos, fechaIso, KW_DEFECTO } from './logica.ts'
 
 // Antigüedad
 assert.equal(diasDePublicacion('hace 3 días'), 3)
@@ -51,7 +52,7 @@ console.log('ok id estable', a)
 // Palabras clave
 assert.deepEqual(palabrasClave({ palabras_clave: { admin: ['jefe de administración', ' '] } }, 'admin'), ['jefe de administración'])
 assert.deepEqual(palabrasClave(null, 'odoo'), KW_DEFECTO.odoo)
-assert.deepEqual(palabrasClave({ palabras_clave: { ia: [] } }, 'ia'), KW_DEFECTO.ia)
+assert.deepEqual(palabrasClave({ palabras_clave: { ia: [] } }, 'ia'), []) // con análisis, una lista vacía significa que no se busca ese rubro
 console.log('ok palabras clave')
 
 // Puntaje
@@ -60,4 +61,34 @@ const buena = { title: 'Analista de Cobranzas', description: 'Facturación y cob
 const mala = { title: 'Chofer de reparto', description: 'Reparto de mercadería' }
 assert.ok(puntuar(buena, 'analista de cobranzas', cv) > puntuar(mala, 'analista de cobranzas', cv))
 console.log('ok puntaje: buena', puntuar(buena, 'analista de cobranzas', cv), '> mala', puntuar(mala, 'analista de cobranzas', cv))
+assert.ok(esJunior({ title: 'Analista Jr contable' }) && esJunior({ title: 'Pasante de sistemas' }) && !esJunior({ title: 'Analista Senior' }))
+console.log('ok filtro junior')
+
+// Análisis del CV
+const cvAdmin = 'Laura Pérez\nAnalista contable senior\n8 años de experiencia en contabilidad, cobranzas, facturación y cuentas a pagar. Excel avanzado, SAP, ARCA, conciliaciones bancarias. Inglés intermedio.'
+const a1 = analizarCV(cvAdmin)
+assert.equal(a1.seniority, 'senior')
+assert.equal(a1.bloques[0].id, 'admin')
+assert.ok(a1.palabras_clave.admin.includes('analista contable'))
+assert.deepEqual(a1.palabras_clave.ia, []) // no es de tecnología: no se busca ahí
+assert.ok(a1.fortalezas.includes('Excel avanzado') && a1.fortalezas.includes('SAP'))
+console.log('ok CV administrativo ->', a1.palabras_clave.admin, '|', a1.resumen)
+
+const cvEnf = 'Marta Gómez\nEnfermera profesional\nEnfermería en terapia intensiva, 5 años de experiencia en hospital. Enfermera universitaria.'
+const a2 = analizarCV(cvEnf)
+assert.equal(a2.bloques.length, 1); assert.equal(a2.bloques[0].nombre, 'Salud')
+const slot = a2.bloques[0].id // un rubro fuera de las tres familias ocupa un bloque libre
+assert.deepEqual(a2.palabras_clave[slot], ['enfermero'])
+assert.equal(a2.seniority, 'semi senior')
+console.log('ok CV de salud en el bloque', slot)
+
+const a3 = analizarCV('Juan Gómez\nDesarrollador full stack\nPython, SQL, JavaScript, automatización con n8n y Odoo técnico. 4 años de experiencia. Odoo, odoo, odoo.')
+assert.equal(a3.bloques[0].id, 'ia'); assert.ok(a3.bloques.some((b) => b.id === 'odoo'))
+console.log('ok CV técnico ->', a3.bloques.map((b) => b.nombre))
+
+const a4 = analizarCV('Carlos Díaz\nMaestro mayor de obras\nTrabajo en obras de construcción y supervisión de personal durante años.')
+assert.ok(a4.sin_coincidencias); assert.deepEqual(a4.palabras_clave.admin, ['Maestro mayor de obras']) // nunca se busca por el nombre de la persona
+console.log('ok CV sin rubro conocido ->', a4.palabras_clave.admin, a4.sin_coincidencias)
+assert.equal(detectarSeniority('Estudiante, primer empleo'), 'junior')
+assert.equal(detectarSeniority('Analista'), 'no determinado')
 console.log('TODAS LAS PRUEBAS PASARON')

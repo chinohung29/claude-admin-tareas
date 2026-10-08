@@ -164,11 +164,21 @@ const PORTALES = [
 const kwElegida = {};
 const portalesAbierto = {};
 function palabrasClave(bloque) {
-  const a = perfil && perfil.analisis && perfil.analisis.palabras_clave && perfil.analisis.palabras_clave[bloque];
-  return Array.isArray(a) && a.length ? { lista: a.map(String), deCV: true } : { lista: KW_DEFECTO[bloque], deCV: false };
+  // Con análisis del CV mandan sus búsquedas (una lista vacía = el CV no apunta a ese rubro); sin CV, las de ejemplo.
+  const pk = perfil && perfil.analisis && perfil.analisis.palabras_clave;
+  if (pk && typeof pk === 'object') return { lista: Array.isArray(pk[bloque]) ? pk[bloque].map(String) : [], deCV: true };
+  return { lista: KW_DEFECTO[bloque], deCV: false };
 }
+// El nombre de cada bloque lo da el análisis del CV (p. ej. "Salud"); sin análisis, el original.
+function nombreBloque(id) {
+  const al = perfil && perfil.analisis;
+  const x = al && Array.isArray(al.bloques) && al.bloques.find(b => b.id === id);
+  return x ? x.nombre : (BLOQUES.find(b => b.id === id) || {}).nombre || id;
+}
+const hayAnalisis = () => !!(perfil && perfil.analisis && perfil.analisis.palabras_clave);
 function portalesPara(b) {
   const { lista, deCV } = palabrasClave(b.id);
+  if (!lista.length) return document.createDocumentFragment();
   if (!lista.includes(kwElegida[b.id])) kwElegida[b.id] = lista[0];
   const det = document.createElement('details');
   det.className = 'portales';
@@ -220,12 +230,13 @@ function render() {
   const cont = document.getElementById('bloques');
   cont.innerHTML = '';
   const vacio = { activas: 'No hay ofertas activas en este bloque.', archivadas: 'No hay archivadas.', descartadas: 'No hay descartadas.', todas: 'No hay ofertas.' };
-  BLOQUES.forEach(b => {
+  // Con el CV analizado, solo se muestran los rubros a los que apunta el perfil (y los que ya tengan avisos).
+  BLOQUES.filter(b => !hayAnalisis() || palabrasClave(b.id).lista.length || all.some(i => i.bloque === b.id)).forEach(b => {
     const sec = document.createElement('section');
     sec.className = 'bloque';
     sec.innerHTML =
-      `<h2>${b.nombre}</h2>
-       <p class="desc">${b.desc}</p>
+      `<h2>${esc(nombreBloque(b.id))}</h2>
+       <p class="desc">${hayAnalisis() ? 'Ofertas ordenadas por coincidencia con tu CV.' : b.desc}</p>
        <div class="items"></div>
        <form class="add">
          <input name="titulo" placeholder="Puesto" required>
@@ -316,13 +327,13 @@ function renderPerfil() {
   const actual = al && perfil.analisis_de_cv && new Date(perfil.analisis_de_cv) >= cv;
   let html = '<p class="meta">CV cargado: <b>' + esc(perfil.cv_nombre || 'texto pegado') + '</b> · ' + fmtFecha(cv.toISOString().slice(0, 10)) + ' · ' + perfil.cv_texto.length + ' caracteres</p>';
   if (!al) {
-    html += '<p class="meta">El agente todavía no analizó tu CV. Lo hace en la próxima corrida diaria, o cuando se lo pidas.</p>';
+    html += '<p class="meta">Todavía no se analizó tu CV. Se analiza cuando buscás ofertas.</p>';
   } else {
-    if (!actual) html += '<p class="meta">Cargaste un CV nuevo: el análisis de abajo es del anterior y se actualiza en la próxima corrida.</p>';
+    if (!actual) html += '<p class="meta">Cargaste un CV nuevo: el análisis de abajo es del anterior y se actualiza al buscar ofertas.</p>';
     html += '<div class="analisis">' +
       (al.resumen ? '<p class="meta">' + esc(al.resumen) + (al.seniority ? ' · Nivel: ' + esc(al.seniority) : '') + '</p>' : '') +
       lista('Fortalezas', al.fortalezas) + lista('Oportunidades', al.oportunidades) +
-      (al.palabras_clave ? BLOQUES.map(b => lista('Búsquedas: ' + b.nombre, al.palabras_clave[b.id])).join('') : '') +
+      (al.palabras_clave ? BLOQUES.map(b => lista('Búsquedas: ' + nombreBloque(b.id), al.palabras_clave[b.id])).join('') : '') +
       '</div>';
   }
   box.innerHTML = html;
@@ -366,8 +377,9 @@ document.getElementById('cvGuardar').addEventListener('click', async () => {
   if (error) { cvMsg('No se pudo guardar: ' + error.message); return; }
   perfil = { ...(perfil || {}), ...fila };
   document.getElementById('cvEditor').hidden = true;
-  cvMsg('CV guardado. El agente lo va a leer en la próxima corrida.');
+  cvMsg('CV guardado. Analizando tu perfil y buscando ofertas acordes…');
   renderPerfil();
+  await buscarOfertas(true);
 });
 
 let canal = null;
@@ -507,7 +519,7 @@ const TUTORIAL = [
     <li>Revisá el texto que aparece y corregilo si hace falta. El archivo se lee en tu dispositivo: <b>no se sube</b>, solo se guarda el texto.</li>
     <li>Tocá <b>Guardar CV</b>.</li></ol>
     <p>Si tu PDF es una imagen escaneada no tiene texto que leer: usá <b>Pegar texto</b> y pegá el contenido de tu CV.</p>
-    <p>En la próxima corrida diaria el agente lo analiza y acá vas a ver tus <b>fortalezas</b>, <b>oportunidades</b> y las búsquedas que va a hacer. Si actualizás el CV, se vuelve a analizar.</p>` },
+    <p>Al guardarlo, el agente lo analiza y busca ofertas acordes a tu perfil: acá vas a ver tus <b>fortalezas</b>, <b>oportunidades</b> y las búsquedas que hace. Los rubros salen de tu CV, no de una lista fija. Si cargás otro CV, se vuelve a analizar.</p>` },
   { t: 'Clasificá cada oferta', h: `<p>Cada tarjeta muestra puesto, empresa, modalidad (remoto, híbrido o presencial), sueldo (<i>A convenir</i> si no figura) y la fecha. Tocá <b>abrir aviso</b> para postularte en el portal.</p>
     <ul><li><b>Pendiente:</b> todavía no decidiste.</li>
     <li><b>Postulado:</b> ya te postulaste. Pasa a «Seguimiento de postulados».</li>
@@ -654,20 +666,25 @@ document.getElementById('arrConfirmar').addEventListener('click', async () => {
 
 
 // ---- Buscar ofertas ahora (agente) ----
-const NOMBRE_BLOQUE = { admin: 'Administrativo', ia: 'IA y automatización', odoo: 'Odoo' };
 function horaLocal(iso) { return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }); }
-document.getElementById('buscarAhora').addEventListener('click', async () => {
+document.getElementById('buscarAhora').addEventListener('click', () => buscarOfertas(false));
+async function buscarOfertas(trasCV) {
   const btn = document.getElementById('buscarAhora'), msg = document.getElementById('buscarMsg');
   btn.disabled = true; msg.textContent = 'Buscando en portales de Argentina… puede tardar unos segundos.';
   const { data, error } = await sb.functions.invoke('agente-ofertas', { method: 'POST', body: {} });
   btn.disabled = false;
   if (error) { msg.textContent = await msgError(error); return; }
-  if (data.omitido === 'reciente') { msg.textContent = 'Ya buscaste hace poco. Podés volver a buscar a partir de las ' + horaLocal(data.proxima_busqueda) + '.'; return; }
+  if (data.omitido === 'reciente') {
+    msg.textContent = (trasCV ? 'Tu CV se guardó, pero ya buscaste hace muy poco. ' : 'Ya buscaste hace poco. ') + 'Podés volver a buscar a partir de las ' + horaLocal(data.proxima_busqueda) + '.';
+    return;
+  }
   if (data.omitido === 'cupo_mensual') { msg.textContent = 'Se alcanzó el límite de búsquedas de este mes. Probá de nuevo más adelante.'; return; }
+  await cargarPerfil(); // trae el análisis nuevo y los rubros detectados
+  const nombres = data.nombres || {};
   const bloques = Object.entries(data.bloques || {});
   const fallaron = bloques.filter(([, b]) => b.error).length;
-  const detalle = bloques.map(([k, b]) => (NOMBRE_BLOQUE[k] || k) + ': ' + b.nuevas).join(' · ');
+  const detalle = bloques.map(([k, b]) => (nombres[k] || nombreBloque(k)) + ': ' + b.nuevas).join(' · ');
   msg.textContent = (data.nuevas ? 'Listo: ' + data.nuevas + ' ofertas nuevas (' + detalle + ').' : 'No hay ofertas nuevas por ahora.') +
     (fallaron ? ' ' + fallaron + ' búsqueda(s) fallaron; probá de nuevo más tarde.' : '');
   await cargar();
-});
+}

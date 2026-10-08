@@ -28,11 +28,20 @@ export interface ResultadoSerp {
 
 export const sinTildes = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-/** Palabras clave de un bloque: las del análisis del CV si hay, si no las de ejemplo. */
+/**
+ * Palabras clave de un bloque. Con análisis del CV manda el análisis, aunque la lista esté vacía (el bloque no se busca).
+ * Sin análisis (persona sin CV) se usan las de ejemplo.
+ */
 export function palabrasClave(analisis: unknown, bloque: Bloque): string[] {
-  const a = (analisis as { palabras_clave?: Record<string, unknown> } | null)?.palabras_clave?.[bloque]
-  const lista = Array.isArray(a) ? a.map((x) => String(x).trim()).filter((x) => x.length > 1 && x.length <= 80) : []
-  return lista.length ? lista : KW_DEFECTO[bloque]
+  const pk = (analisis as { palabras_clave?: Record<string, unknown> } | null)?.palabras_clave
+  if (!pk || typeof pk !== 'object') return KW_DEFECTO[bloque]
+  const a = pk[bloque]
+  return Array.isArray(a) ? a.map((x) => String(x).trim()).filter((x) => x.length > 1 && x.length <= 80) : []
+}
+
+/** Aviso de nivel inicial: se descarta cuando el perfil de la persona no es junior. */
+export function esJunior(r: ResultadoSerp): boolean {
+  return /\b(junior|jr|trainee|pasante|becario|practicante)\b/.test(sinTildes(r.title ?? ''))
 }
 
 const UNIDAD_DIAS: Record<string, number> = {

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { DB } from './stub.ts'
+import { analizarCV } from './analisis.ts'
 const env: Record<string, string> = { SUPABASE_URL: 'x', SUPABASE_ANON_KEY: 'x', SUPABASE_SERVICE_ROLE_KEY: 'x', SERPAPI_KEY: 'clave-de-prueba', SERPAPI_LIMITE_MENSUAL: '240' }
 let handler: any
 ;(globalThis as any).Deno = { env: { get: (k: string) => env[k] }, serve: (h: any) => { handler = h } }
@@ -17,9 +18,11 @@ const pedir = (b: any = {}, h: any = {}) => handler(new Request('http://x', { me
 const oferta = (title: string, extra: any = {}) => ({ title, company_name: 'ACME', location: 'Buenos Aires, Argentina', description: 'Facturación cobranzas Odoo', detected_extensions: { posted_at: 'hace 2 días' }, apply_options: [{ title: 'Computrabajo', link: 'https://ar.computrabajo.com/x-' + title.length }], ...extra })
 const dia = Math.floor((Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 86_400_000)
 const kw = (lista: string[]) => lista[dia % lista.length]
-const KW = { admin: ['analista administrativo', 'analista de cobranzas', 'analista de facturación', 'cuentas a pagar'], ia: ['automatización de procesos', 'desarrollador IA', 'desarrollador web', 'analista de datos'], odoo: ['analista funcional odoo', 'consultor odoo', 'implementador odoo'] }
+const CV = 'Analista administrativo con experiencia en facturación, cobranzas y Odoo contable.'
+const KW = analizarCV(CV).palabras_clave // las búsquedas salen del CV, no de una lista fija
+assert.deepEqual(KW.ia, []); assert.ok(KW.admin.length && KW.odoo.length)
 
-DB.tablas.perfil.push({ user_id: 'user-1', cv_texto: 'Analista administrativo con experiencia en facturación, cobranzas y Odoo contable.', analisis: null })
+DB.tablas.perfil.push({ user_id: 'user-1', cv_texto: CV, cv_actualizado: '2026-10-01T00:00:00Z', analisis: null, analisis_de_cv: null })
 DB.tablas.estados.push({ user_id: 'user-1', job_id: 'g-descartada', status: 'descartado', archived: null })
 DB.tablas.ofertas.push({ user_id: 'user-1', id: 'vieja', nuevo: true })
 SERP[kw(KW.admin)] = { jobs_results: [
@@ -30,17 +33,20 @@ SERP[kw(KW.admin)] = { jobs_results: [
   oferta('Sin enlace', { apply_options: [] }),                                  // fuera: sin enlace
   oferta('Remoto sin fecha', { location: 'Anywhere', detected_extensions: { work_from_home: true } }), // entra, sin fecha verificable
   oferta('Analista de Cobranzas'),                                              // duplicada
+  oferta('Analista Jr de Cobranzas'),                                           // fuera: nivel junior y el CV no es junior
 ] }
-SERP[kw(KW.ia)] = { error: 'Google hasn\'t returned any results for this query.', __status: 200 }
 SERP[kw(KW.odoo)] = { error: 'Invalid API key. Your API key should be here: https://serpapi.com/manage-api-key', __status: 401 }
 
 // 1) corrida normal
 let res = await (await pedir({ diagnostico: true })).json()
 console.log(JSON.stringify(res.bloques, null, 1).slice(0, 1600))
-assert.equal(res.bloques.admin.devueltas, 7)
+assert.equal(res.analizado, true)
+assert.equal(DB.tablas.perfil[0].analisis.bloques.length, 2)
+assert.equal(DB.tablas.perfil[0].analisis_de_cv, '2026-10-01T00:00:00Z')
+assert.equal(res.bloques.ia, undefined) // el CV no es de tecnología: no se busca ni se gasta cupo
+assert.equal(res.bloques.admin.devueltas, 8)
 assert.equal(res.bloques.admin.nuevas, 3)
-assert.deepEqual(res.bloques.admin.descartes, { no_argentina: 1, antiguas: 1, sin_enlace: 1, ya_vistas: 1 })
-assert.equal(res.bloques.ia.nuevas, 0); assert.equal(res.bloques.ia.error, undefined) // sin resultados no es error
+assert.deepEqual(res.bloques.admin.descartes, { no_argentina: 1, antiguas: 1, junior: 1, sin_enlace: 1, ya_vistas: 1 })
 assert.ok(res.bloques.odoo.error.includes('Invalid API key'))
 assert.equal(res.nuevas, 3)
 const guardadas = DB.tablas.ofertas.filter((o: any) => o.id !== 'vieja')
@@ -51,17 +57,30 @@ const mejor = guardadas.find((o: any) => o.prio === 1); console.log('prio 1:', m
 assert.equal(guardadas.find((o: any) => o.titulo === 'Remoto sin fecha').iso, null)
 assert.equal(guardadas.find((o: any) => o.titulo === 'Remoto sin fecha').modalidad, 'Remoto')
 assert.equal(DB.tablas.ofertas.find((o: any) => o.id === 'vieja').nuevo, false) // las anteriores dejan de ser "nuevas"
-assert.equal(DB.tablas.busquedas.length, 3)
+assert.equal(DB.tablas.busquedas.length, 2)
 assert.ok(llamadas.every((u) => { const p = new URL(u).searchParams; return p.get('engine') === 'google_jobs' && p.get('gl') === 'ar' && p.get('location') === 'Argentina' && p.get('hl') === 'es' }))
 assert.ok(llamadas.every((u) => !u.toLowerCase().includes('facturaci%c3%b3n y odoo contable'))) // el CV nunca viaja
 assert.ok(res.bloques.admin.diagnostico.claves_primer_resultado.includes('apply_options'))
-console.log('ok corrida normal (3 búsquedas, Argentina, ≤15 días, sin repetir, prio por puntaje, CV no enviado)')
+console.log('ok corrida normal (2 búsquedas según el CV, Argentina, ≤15 días, sin repetir, prio por puntaje, CV no enviado)')
 
 // 2) límite de frecuencia: una segunda corrida inmediata no gasta créditos
 const antes = llamadas.length
 res = await (await pedir()).json()
 assert.equal(res.omitido, 'reciente'); assert.equal(llamadas.length, antes)
 console.log('ok límite de frecuencia:', res.omitido, '→ próxima', res.proxima_busqueda.slice(0, 16))
+
+// 2b) CV nuevo: se busca de nuevo sin esperar las horas, pero no antes de 30 minutos de la anterior
+DB.tablas.perfil[0].cv_actualizado = new Date().toISOString()
+res = await (await pedir()).json(); assert.equal(res.omitido, 'reciente'); assert.equal(res.analizado, true) // recién buscó: espera 30 minutos, pero el análisis del CV nuevo ya queda hecho
+for (const b of DB.tablas.busquedas) b.ejecutado_el = new Date(Date.now() - 3_600_000).toISOString()
+DB.tablas.perfil[0].cv_actualizado = new Date().toISOString()
+DB.tablas.perfil[0].cv_texto = 'Enfermera profesional con 5 años de experiencia en terapia intensiva. Enfermería hospitalaria.'
+res = await (await pedir()).json()
+assert.notEqual(res.omitido, 'reciente'); assert.equal(res.analizado, true)
+assert.equal(DB.tablas.perfil[0].analisis.bloques[0].nombre, 'Salud')
+assert.ok(llamadas.at(-1)!.includes('enfermero') || llamadas.some((u) => u.includes('enfermero')))
+console.log('ok CV nuevo: se vuelve a analizar y busca por el perfil nuevo →', JSON.stringify(res.nombres))
+DB.tablas.perfil[0].cv_texto = CV; DB.tablas.perfil[0].analisis = null
 
 // 3) las descartadas no vuelven: si el mismo aviso ya fue descartado por el usuario, no se vuelve a guardar
 DB.tablas.busquedas.length = 0
