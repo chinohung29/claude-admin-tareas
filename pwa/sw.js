@@ -1,7 +1,6 @@
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
-const DATA = 'data';
-const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest',
+const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'vendor/supabase.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -19,18 +18,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (new URL(req.url).pathname.endsWith('/jobs.json')) {
-    // Listado diario: red primero para ver lo nuevo, caché si no hay conexión.
-    e.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(DATA).then(c => c.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req))
-    );
-    return;
-  }
-  // Resto: caché primero, y se refresca en segundo plano.
+  // Solo el shell (mismo origen); la API de Supabase va directo a la red.
+  // Caché primero, y se refresca en segundo plano.
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(hit => {
       const net = fetch(req).then(res => {

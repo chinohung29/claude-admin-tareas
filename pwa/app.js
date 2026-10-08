@@ -4,30 +4,56 @@ const BLOQUES = [
   { id: 'odoo', nombre: 'Odoo', desc: 'Excluye junior y requisito excluyente de implementadora o partner certificado.' }
 ];
 
-const LS_KEY = 'lmh_job_tracker_v1';
+
+const SUPABASE_URL = 'https://oxfkdioubobqttdyxcfn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5uYobwxpZi3xH7OuUiMlRA_p3Qnwi3x';
+const EMAIL_DUENO = 'lamh2903@gmail.com';
+const CACHE_KEY = 'lmh_job_cache_v2';
+const PENDING_KEY = 'lmh_job_pending_v2';
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const TODAY = new Date();
 
-let items = [];
-let actualizado = '';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'busqueda_laboral' } });
 
-function normalize(d) {
-  d = d ? JSON.parse(JSON.stringify(d)) : {};
-  return {
-    status: d.status || {},
-    archived: d.archived || {},
-    removed: d.removed || {},
-    custom: Array.isArray(d.custom) ? d.custom : []
-  };
+let items = [];
+let state = { status: {}, archived: {}, removed: {}, custom: [] };
+let session = null;
+
+function readJSON(k, fallback) {
+  try { const raw = localStorage.getItem(k); if (raw) return JSON.parse(raw); } catch (e) {}
+  return fallback;
 }
-function loadLocal() {
-  try { const raw = localStorage.getItem(LS_KEY); if (raw) return normalize(JSON.parse(raw)); } catch (e) {}
-  return normalize(null);
+function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+function applyEstados(rows) {
+  state.status = {}; state.archived = {}; state.removed = {};
+  rows.forEach(r => applyEstado(r));
 }
-let state = loadLocal();
-function persist() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+function applyEstado(r) {
+  state.status[r.job_id] = r.status;
+  if (r.archived === null || r.archived === undefined) delete state.archived[r.job_id]; else state.archived[r.job_id] = r.archived;
+  if (r.removed) state.removed[r.job_id] = true; else delete state.removed[r.job_id];
 }
+function rowOf(id) {
+  return { job_id: id, status: state.status[id] || 'pendiente', archived: state.archived[id] === undefined ? null : state.archived[id], removed: !!state.removed[id], updated_at: new Date().toISOString() };
+}
+
+// Los cambios que no se pudieron subir (sin conexión) se reintentan al volver.
+async function guardar(ids) {
+  const pend = readJSON(PENDING_KEY, {});
+  ids.forEach(id => { pend[id] = rowOf(id); });
+  writeJSON(PENDING_KEY, pend);
+  guardarCache();
+  await vaciarPendientes();
+}
+async function vaciarPendientes() {
+  const pend = readJSON(PENDING_KEY, {});
+  const rows = Object.values(pend);
+  if (!rows.length || !session) return;
+  const { error } = await sb.from('estados').upsert(rows, { onConflict: 'job_id' });
+  if (!error) writeJSON(PENDING_KEY, {});
+}
+function guardarCache() { writeJSON(CACHE_KEY, { items, state }); }
 
 function allItems() { return items.concat(state.custom).filter(i => !state.removed[i.id]); }
 function daysAgo(iso) {
@@ -56,18 +82,24 @@ function archiveReason(i) {
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function est(i) { return state.status[i.id] || 'pendiente'; }
 
-function setStatus(id, s) { state.status[id] = s; persist(); render(); }
-function setArchived(id, v) { state.archived[id] = v; persist(); render(); }
-function quitar(ids) { ids.forEach(id => { state.removed[id] = true; }); persist(); render(); }
-function addCustom(bloque, titulo, empresa, modalidad, url) {
+function setStatus(id, s) { state.status[id] = s; render(); guardar([id]); }
+function setArchived(id, v) { state.archived[id] = v; render(); guardar([id]); }
+function quitar(ids) { ids.forEach(id => { state.removed[id] = true; }); render(); guardar(ids); }
+async function addCustom(bloque, titulo, empresa, modalidad, url) {
   if (!titulo) return;
-  state.custom.push({ id: 'custom_' + Date.now(), bloque, titulo, empresa, modalidad, url, iso: TODAY.toISOString().slice(0, 10), custom: true });
-  persist(); render();
+  const it = { id: 'custom_' + Date.now(), bloque, titulo, empresa, modalidad, url: url || null, iso: TODAY.toISOString().slice(0, 10) };
+  const { error } = await sb.from('manuales').insert(it);
+  if (error) { alert('No se pudo guardar. Revisá la conexión e intentá de nuevo.'); return; }
+  state.custom.push({ ...it, custom: true });
+  guardarCache(); render();
 }
-function removeCustom(id) {
+async function removeCustom(id) {
+  const { error } = await sb.from('manuales').delete().eq('id', id);
+  if (error) { alert('No se pudo eliminar. Revisá la conexión.'); return; }
   state.custom = state.custom.filter(i => i.id !== id);
-  delete state.status[id]; delete state.archived[id];
-  persist(); render();
+  delete state.status[id]; delete state.archived[id]; delete state.removed[id];
+  await sb.from('estados').delete().eq('job_id', id);
+  guardarCache(); render();
 }
 
 function link(i) {
@@ -180,45 +212,95 @@ function render() {
 }
 
 function showAviso() {
-  const f = actualizado ? fmtFecha(actualizado) : '';
   document.getElementById('aviso').textContent =
-    (f ? 'Listado actualizado el ' + f + '. ' : '') +
     'Cada bloque está ordenado por prioridad según coincidencia con tu perfil. Si no figura sueldo, queda como A convenir. Los avisos nuevos son los publicados en los últimos 15 días; cuando la fecha dice "sin verificar", revisala directo en el aviso.';
 }
 
-async function cargar() {
-  try {
-    const r = await fetch('jobs.json', { cache: 'no-cache' });
-    if (!r.ok) throw new Error(r.status);
-    const d = await r.json();
-    items = d.items || [];
-    actualizado = d.actualizado || '';
-  } catch (e) {
-    document.getElementById('aviso').textContent = 'No se pudo cargar el listado. Reintentá con conexión.';
-    return;
-  }
-  showAviso();
-  render();
+function mostrarLogin(msg) {
+  document.getElementById('app').hidden = true;
+  document.getElementById('login').hidden = false;
+  document.getElementById('loginMsg').textContent = msg || '';
+}
+function mostrarApp() {
+  document.getElementById('login').hidden = true;
+  document.getElementById('app').hidden = false;
 }
 
-// Respaldo manual de estados
-document.getElementById('export').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'busqueda-laboral-' + TODAY.toISOString().slice(0, 10) + '.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+async function cargar() {
+  const [o, e, m] = await Promise.all([
+    sb.from('ofertas').select('*').order('prio', { nullsFirst: false }).order('created_at', { ascending: false }),
+    sb.from('estados').select('*'),
+    sb.from('manuales').select('*')
+  ]);
+  if (o.error || e.error || m.error) {
+    document.getElementById('aviso').textContent = 'Sin conexión con el servidor: se muestra lo último guardado en este dispositivo.';
+    return false;
+  }
+  items = o.data;
+  applyEstados(e.data);
+  state.custom = m.data.map(r => ({ ...r, custom: true }));
+  // Lo que quedó sin subir manda sobre lo del servidor.
+  Object.values(readJSON(PENDING_KEY, {})).forEach(r => applyEstado(r));
+  guardarCache();
+  showAviso();
+  render();
+  vaciarPendientes();
+  return true;
+}
+
+let canal = null;
+function suscribir() {
+  if (canal) return;
+  canal = sb.channel('estados-live')
+    .on('postgres_changes', { event: '*', schema: 'busqueda_laboral', table: 'estados' }, p => {
+      if (p.eventType === 'DELETE') {
+        const id = p.old && p.old.job_id;
+        if (id) { delete state.status[id]; delete state.archived[id]; delete state.removed[id]; }
+      } else if (!readJSON(PENDING_KEY, {})[p.new.job_id]) {
+        applyEstado(p.new);
+      }
+      guardarCache(); render();
+    })
+    .subscribe();
+}
+
+async function entrar(s) {
+  session = s;
+  if (!s) { mostrarLogin(); return; }
+  if ((s.user.email || '').toLowerCase() !== EMAIL_DUENO) {
+    await sb.auth.signOut();
+    mostrarLogin('Esta app es privada: iniciá sesión con ' + EMAIL_DUENO + '.');
+    return;
+  }
+  mostrarApp();
+  const cache = readJSON(CACHE_KEY, null);
+  if (cache) { items = cache.items || []; state = cache.state || state; showAviso(); render(); }
+  await cargar();
+  suscribir();
+}
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg = document.getElementById('loginMsg');
+  msg.textContent = 'Enviando…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
+  });
+  msg.textContent = error ? 'No se pudo enviar el link: ' + error.message : 'Listo. Abrí el link que te llegó a ' + email + ' en este mismo dispositivo.';
 });
-document.getElementById('import').addEventListener('click', () => document.getElementById('importFile').click());
-document.getElementById('importFile').addEventListener('change', async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  try {
-    state = normalize(JSON.parse(await f.text()));
-    persist(); render();
-  } catch (err) { alert('El archivo no es un respaldo válido.'); }
-  e.target.value = '';
+document.getElementById('logout').addEventListener('click', async () => {
+  try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
+  await sb.auth.signOut();
+});
+
+sb.auth.onAuthStateChange((evento, s) => {
+  if (evento === 'INITIAL_SESSION' || evento === 'SIGNED_IN' || evento === 'SIGNED_OUT') {
+    if (evento === 'SIGNED_IN' && session && s && session.user.id === s.user.id) return;
+    if (evento === 'SIGNED_OUT' && canal) { sb.removeChannel(canal); canal = null; }
+    setTimeout(() => entrar(s), 0);
+  }
 });
 
 // Instalación y estado de conexión
@@ -237,7 +319,7 @@ document.getElementById('install').addEventListener('click', async () => {
 });
 window.addEventListener('appinstalled', () => { document.getElementById('install').hidden = true; });
 function conexion() { document.getElementById('offline').hidden = navigator.onLine; }
-window.addEventListener('online', () => { conexion(); cargar(); });
+window.addEventListener('online', () => { conexion(); if (session) cargar(); });
 window.addEventListener('offline', conexion);
 conexion();
 
@@ -246,4 +328,3 @@ if ('serviceWorker' in navigator) {
 }
 
 document.getElementById('fecha').textContent = TODAY.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-cargar();

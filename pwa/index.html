@@ -16,15 +16,24 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="login" hidden>
   <header>
     <h1>Seguimiento de búsqueda laboral</h1>
-    <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Los descartados se pueden quitar del listado con un botón.</p>
+    <p class="sub">Acceso privado. Te mando un link de ingreso por mail; no hace falta contraseña.</p>
+  </header>
+  <form id="loginForm" class="add">
+    <input id="loginEmail" type="email" value="lamh2903@gmail.com" required autocomplete="email" aria-label="Email">
+    <button type="submit">Enviar link</button>
+  </form>
+  <p class="aviso" id="loginMsg"></p>
+</div>
+<div class="wrap" id="app" hidden>
+  <header>
+    <h1>Seguimiento de búsqueda laboral</h1>
+    <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Se sincroniza entre tus dispositivos.</p>
     <div class="bar">
       <button type="button" id="install" hidden>Instalar app</button>
-      <button type="button" id="export">Exportar respaldo</button>
-      <button type="button" id="import">Importar respaldo</button>
-      <input type="file" id="importFile" accept="application/json" hidden>
+      <button type="button" id="logout">Cerrar sesión</button>
     </div>
     <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
   </header>
@@ -32,8 +41,9 @@
   <div class="tally" id="tally"></div>
   <div id="seguimiento"></div>
   <div id="bloques"></div>
-  <footer>Visto el <span id="fecha"></span>. Tus estados se guardan solo en este dispositivo; usá "Exportar respaldo" para pasarlos a otro. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte.</footer>
+  <footer>Visto el <span id="fecha"></span>. Tus estados se sincronizan; sin conexión se guardan en el dispositivo y se suben al volver. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte.</footer>
 </div>
+<script src="vendor/supabase.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
