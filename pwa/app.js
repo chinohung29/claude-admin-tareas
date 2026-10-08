@@ -348,6 +348,7 @@ async function entrar(s) {
     return;
   }
   mostrarApp();
+  try { if (!localStorage.getItem('lmh_pass_visto')) { passPanel(true); passMsg('Creá una contraseña para poder entrar también desde el celu.'); } } catch (e) {}
   const cache = readJSON(CACHE_KEY, null);
   if (cache) { items = cache.items || []; state = cache.state || state; showAviso(); render(); }
   await cargar();
@@ -357,13 +358,38 @@ async function entrar(s) {
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
   const msg = document.getElementById('loginMsg');
+  msg.textContent = 'Entrando…';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  msg.textContent = error ? 'No se pudo entrar: ' + (error.message === 'Invalid login credentials' ? 'email o contraseña incorrectos.' : error.message) : '';
+});
+document.getElementById('loginLink').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg = document.getElementById('loginMsg');
+  if (!email) { msg.textContent = 'Escribí tu email primero.'; return; }
   msg.textContent = 'Enviando…';
   const { error } = await sb.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
   });
   msg.textContent = error ? 'No se pudo enviar el link: ' + error.message : 'Listo. Abrí el link que te llegó a ' + email + ' en este mismo dispositivo.';
+});
+
+// Contraseña: se crea o cambia estando ya adentro (por ejemplo, tras entrar con el link del mail).
+function passMsg(t) { const m = document.getElementById('passMsg'); m.hidden = !t; m.textContent = t || ''; }
+function passPanel(abrir) { document.getElementById('passForm').hidden = !abrir; if (!abrir) passMsg(''); }
+document.getElementById('passAbrir').addEventListener('click', () => passPanel(document.getElementById('passForm').hidden));
+document.getElementById('passCerrar').addEventListener('click', () => { try { localStorage.setItem('lmh_pass_visto', '1'); } catch (e) {} passPanel(false); });
+document.getElementById('passForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = document.getElementById('passNueva').value, b = document.getElementById('passRepetir').value;
+  if (a !== b) { passMsg('Las contraseñas no coinciden.'); return; }
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) { passMsg('No se pudo guardar: ' + error.message); return; }
+  try { localStorage.setItem('lmh_pass_visto', '1'); } catch (er) {}
+  e.target.reset(); passPanel(false);
+  passMsg('Contraseña guardada. Ya podés entrar con email y contraseña desde cualquier dispositivo.');
 });
 document.getElementById('logout').addEventListener('click', async () => {
   try { localStorage.removeItem(CACHE_KEY); } catch (e) {}

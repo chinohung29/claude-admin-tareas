@@ -19,12 +19,14 @@
 <div class="wrap" id="login" hidden>
   <header>
     <h1>Seguimiento de búsqueda laboral</h1>
-    <p class="sub">Acceso privado. Te mando un link de ingreso por mail; no hace falta contraseña.</p>
+    <p class="sub">Acceso privado. Entrá con tu email y contraseña. Si todavía no creaste una contraseña, pedí un link por mail, entrá desde la computadora y creala desde la app.</p>
   </header>
   <form id="loginForm" class="add">
-    <input id="loginEmail" type="email" value="lamh2903@gmail.com" required autocomplete="email" aria-label="Email">
-    <button type="submit">Enviar link</button>
+    <input id="loginEmail" type="email" value="lamh2903@gmail.com" required autocomplete="username" aria-label="Email">
+    <input id="loginPass" type="password" required autocomplete="current-password" placeholder="Contraseña" aria-label="Contraseña">
+    <button type="submit">Entrar</button>
   </form>
+  <p class="meta"><button type="button" id="loginLink" class="linkbtn">Enviar link por mail en vez de contraseña</button></p>
   <p class="aviso" id="loginMsg"></p>
 </div>
 <div class="wrap" id="app" hidden>
@@ -33,8 +35,17 @@
     <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Se sincroniza entre tus dispositivos.</p>
     <div class="bar">
       <button type="button" id="install" hidden>Instalar app</button>
+      <button type="button" id="passAbrir">Contraseña</button>
       <button type="button" id="logout">Cerrar sesión</button>
     </div>
+    <form id="passForm" class="add" hidden>
+      <p class="meta" style="flex-basis:100%">Contraseña para entrar desde cualquier dispositivo. Es la de tu cuenta de Supabase (la misma de otras apps del mismo proyecto que usen este email, por ejemplo LMH Flow).</p>
+      <input id="passNueva" type="password" minlength="8" required autocomplete="new-password" placeholder="Nueva contraseña (mín. 8)" aria-label="Nueva contraseña">
+      <input id="passRepetir" type="password" minlength="8" required autocomplete="new-password" placeholder="Repetila" aria-label="Repetir contraseña">
+      <button type="submit">Guardar contraseña</button>
+      <button type="button" id="passCerrar">Ahora no</button>
+    </form>
+    <p class="aviso" id="passMsg" hidden></p>
     <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
   </header>
   <p class="aviso" id="aviso"></p>

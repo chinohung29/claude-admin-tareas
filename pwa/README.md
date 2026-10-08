@@ -22,7 +22,7 @@ App estática instalable, sin build. Datos y login en Supabase (proyecto `LMH_Fl
 3. Insertar las ofertas nuevas en `ofertas` (id nuevo, `bloque` = `admin`/`ia`/`odoo`, `prio`, `nuevo = true`).
 
 ## Login
-Link mágico por mail (`signInWithOtp`, sin crear usuarios nuevos). Hay que agregar la URL donde se publique la app en Supabase → Authentication → URL Configuration → Redirect URLs.
+Email y contraseña (`signInWithPassword`), o link mágico por mail como alternativa (`signInWithOtp`, sin crear usuarios nuevos). La contraseña se crea o cambia desde la app, ya con sesión (botón "Contraseña"); la app la ofrece la primera vez que se entra en un dispositivo. Ojo: es la contraseña de la cuenta de Supabase, compartida con otras apps del proyecto que usen el mismo email. Hay que agregar la URL donde se publique la app en Supabase → Authentication → URL Configuration → Redirect URLs.
 
 ## Probar local
 `cd pwa && python3 -m http.server 8000` y abrir http://localhost:8000 (el service worker funciona en localhost; para el login, `http://localhost:8000` también tiene que estar en Redirect URLs).

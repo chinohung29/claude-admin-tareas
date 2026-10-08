@@ -81,3 +81,9 @@ details.archivo.desc-box summary { color: var(--descartado); }
 form#cvForm button { background: var(--card); color: var(--ink); border-color: var(--line); }
 #perfilInfo .analisis h3 { font-size: 13px; margin: 12px 0 4px; }
 #perfilInfo ul { margin: 0; padding-left: 18px; line-height: 1.5; font-size: 13px; }
+
+.linkbtn { font-family: inherit; font-size: 12.5px; background: none; border: none; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 0; }
+#login form.add input[type=password], #login form.add input[type=email] { min-width: 180px; }
+#passForm button[type=button] { font-family: inherit; font-size: 12.5px; padding: 7px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+
+[hidden] { display: none !important; }
