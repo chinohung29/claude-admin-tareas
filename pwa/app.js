@@ -5,15 +5,15 @@ const BLOQUES = [
 ];
 
 
-const SUPABASE_URL = 'https://oxfkdioubobqttdyxcfn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_5uYobwxpZi3xH7OuUiMlRA_p3Qnwi3x';
+const SUPABASE_URL = 'https://bclqrmeeqssvqovkvvkz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_CE2MOsoNw_D0aCvWcbYk0w_INz9XXX1';
 const EMAIL_DUENO = 'lamh2903@gmail.com';
 const CACHE_KEY = 'lmh_job_cache_v2';
 const PENDING_KEY = 'lmh_job_pending_v2';
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const TODAY = new Date();
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'busqueda_laboral' } });
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let items = [];
 let state = { status: {}, archived: {}, removed: {}, custom: [] };
@@ -324,7 +324,7 @@ let canal = null;
 function suscribir() {
   if (canal) return;
   canal = sb.channel('estados-live')
-    .on('postgres_changes', { event: '*', schema: 'busqueda_laboral', table: 'estados' }, p => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'estados' }, p => {
       if (p.eventType === 'DELETE') {
         const id = p.old && p.old.job_id;
         if (id) { delete state.status[id]; delete state.archived[id]; delete state.removed[id]; }
@@ -333,7 +333,7 @@ function suscribir() {
       }
       guardarCache(); render();
     })
-    .on('postgres_changes', { event: '*', schema: 'busqueda_laboral', table: 'perfil' }, p => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'perfil' }, p => {
       if (p.new && p.new.id) { perfil = p.new; renderPerfil(); }
     })
     .subscribe();
@@ -363,18 +363,22 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   msg.textContent = error ? 'No se pudo entrar: ' + (error.message === 'Invalid login credentials' ? 'email o contraseña incorrectos.' : error.message) : '';
 });
-document.getElementById('loginLink').addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value.trim();
-  const msg = document.getElementById('loginMsg');
-  if (!email) { msg.textContent = 'Escribí tu email primero.'; return; }
-  msg.textContent = 'Enviando…';
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
-  });
-  msg.textContent = error ? 'No se pudo enviar el link: ' + error.message : 'Listo. Abrí el link que te llegó a ' + email + ' en este mismo dispositivo.';
+document.getElementById('crearAbrir').addEventListener('click', () => {
+  const f = document.getElementById('signupForm');
+  f.hidden = !f.hidden;
 });
-
+document.getElementById('signupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('signupEmail').value.trim();
+  const a = document.getElementById('signupPass').value, b = document.getElementById('signupPass2').value;
+  const msg = document.getElementById('loginMsg');
+  if (a !== b) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
+  msg.textContent = 'Creando la cuenta…';
+  const { error } = await sb.auth.signUp({ email, password: a });
+  if (error) { msg.textContent = 'No se pudo crear la cuenta: ' + (/cerrado/i.test(error.message) ? 'este email no está habilitado.' : error.message); return; }
+  const r = await sb.auth.signInWithPassword({ email, password: a });
+  msg.textContent = r.error ? 'Cuenta creada, pero no se pudo entrar: ' + r.error.message : '';
+});
 document.getElementById('logout').addEventListener('click', async () => {
   try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
   await sb.auth.signOut();
