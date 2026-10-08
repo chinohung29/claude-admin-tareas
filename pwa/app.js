@@ -18,6 +18,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'bu
 let items = [];
 let state = { status: {}, archived: {}, removed: {}, custom: [] };
 let session = null;
+let perfil = null;
 
 function readJSON(k, fallback) {
   try { const raw = localStorage.getItem(k); if (raw) return JSON.parse(raw); } catch (e) {}
@@ -245,8 +246,79 @@ async function cargar() {
   showAviso();
   render();
   vaciarPendientes();
+  cargarPerfil();
   return true;
 }
+
+
+// ---- Perfil (CV) ----
+async function cargarPerfil() {
+  const { data, error } = await sb.from('perfil').select('*').eq('id', 'principal').maybeSingle();
+  if (error) return;
+  perfil = data;
+  renderPerfil();
+}
+
+function lista(titulo, arr) {
+  if (!Array.isArray(arr) || !arr.length) return '';
+  return '<h3>' + esc(titulo) + '</h3><ul>' + arr.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+}
+
+function renderPerfil() {
+  const box = document.getElementById('perfilInfo');
+  if (!perfil || !perfil.cv_texto) {
+    box.innerHTML = '<p class="meta">Todavía no cargaste tu CV.</p>';
+    return;
+  }
+  const cv = new Date(perfil.cv_actualizado);
+  const al = perfil.analisis;
+  const actual = al && perfil.analisis_de_cv && new Date(perfil.analisis_de_cv) >= cv;
+  let html = '<p class="meta">CV cargado: <b>' + esc(perfil.cv_nombre || 'texto pegado') + '</b> · ' + fmtFecha(cv.toISOString().slice(0, 10)) + ' · ' + perfil.cv_texto.length + ' caracteres</p>';
+  if (!al) {
+    html += '<p class="meta">El agente todavía no analizó tu CV. Lo hace en la próxima corrida diaria, o cuando se lo pidas.</p>';
+  } else {
+    if (!actual) html += '<p class="meta">Cargaste un CV nuevo: el análisis de abajo es del anterior y se actualiza en la próxima corrida.</p>';
+    html += '<div class="analisis">' +
+      (al.resumen ? '<p class="meta">' + esc(al.resumen) + (al.seniority ? ' · Nivel: ' + esc(al.seniority) : '') + '</p>' : '') +
+      lista('Fortalezas', al.fortalezas) + lista('Oportunidades', al.oportunidades) +
+      (al.palabras_clave ? BLOQUES.map(b => lista('Búsquedas: ' + b.nombre, al.palabras_clave[b.id])).join('') : '') +
+      '</div>';
+  }
+  box.innerHTML = html;
+}
+
+function cvMsg(t) {
+  const m = document.getElementById('cvMsg');
+  m.hidden = !t; m.textContent = t || '';
+}
+function cvEditar(texto, nombre) {
+  document.getElementById('cvTexto').value = texto;
+  document.getElementById('cvEditor').dataset.nombre = nombre || '';
+  document.getElementById('cvEditor').hidden = false;
+}
+document.getElementById('cvFile').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  cvMsg('Leyendo el archivo…');
+  try {
+    cvEditar(await cvExtraer(f), f.name);
+    cvMsg('Revisá el texto extraído, corregilo si hace falta y guardalo.');
+  } catch (err) { cvMsg(err.message); }
+  e.target.value = '';
+});
+document.getElementById('cvPegar').addEventListener('click', () => { cvEditar('', 'texto pegado'); cvMsg(''); });
+document.getElementById('cvCancelar').addEventListener('click', () => { document.getElementById('cvEditor').hidden = true; cvMsg(''); });
+document.getElementById('cvGuardar').addEventListener('click', async () => {
+  const texto = document.getElementById('cvTexto').value.trim().slice(0, CV_MAX_CHARS);
+  if (texto.length < 80) { cvMsg('El texto es muy corto para analizarlo.'); return; }
+  const fila = { id: 'principal', cv_nombre: document.getElementById('cvEditor').dataset.nombre || null, cv_texto: texto, cv_actualizado: new Date().toISOString() };
+  const { error } = await sb.from('perfil').upsert(fila, { onConflict: 'id' });
+  if (error) { cvMsg('No se pudo guardar: ' + error.message); return; }
+  perfil = { ...(perfil || {}), ...fila };
+  document.getElementById('cvEditor').hidden = true;
+  cvMsg('CV guardado. El agente lo va a leer en la próxima corrida.');
+  renderPerfil();
+});
 
 let canal = null;
 function suscribir() {
@@ -260,6 +332,9 @@ function suscribir() {
         applyEstado(p.new);
       }
       guardarCache(); render();
+    })
+    .on('postgres_changes', { event: '*', schema: 'busqueda_laboral', table: 'perfil' }, p => {
+      if (p.new && p.new.id) { perfil = p.new; renderPerfil(); }
     })
     .subscribe();
 }

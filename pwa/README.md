@@ -11,10 +11,12 @@ App estática instalable, sin build. Datos y login en Supabase (proyecto `LMH_Fl
 - `ofertas`: el listado diario. Lo escribe la rutina; la app solo lee.
 - `estados`: estado por oferta (`pendiente`/`postulado`/`descartado`, `archived`, `removed`). Sincronizado en tiempo real entre dispositivos. Sin conexión se guarda local y se sube al volver.
 - `manuales`: ofertas agregadas a mano desde la app.
+- `perfil`: una sola fila (`id = 'principal'`). La app guarda `cv_nombre`, `cv_texto` y `cv_actualizado` (el archivo PDF/DOCX/TXT/MD se lee en el navegador con `cv.js` y `vendor/pdf*.mjs`; no se sube). El agente escribe `analisis` (jsonb), `analisis_de_cv` y `analisis_actualizado`; la app no tiene permiso de escritura sobre esas columnas.
 - RLS activado en las tres: solo el dueño (`es_dueno()`, por email del JWT) puede leer o escribir. El proyecto comparte auth con otras apps, por eso la política no se limita a "usuario autenticado".
 - La clave `sb_publishable_…` del código es pública por diseño; sin sesión del dueño no devuelve nada.
 
 ## Rutina diaria
+0. Leer `perfil`. Si hay `cv_texto` y `analisis_de_cv` es null o menor que `cv_actualizado`, analizar el CV y escribir `analisis` con esta forma: `{"resumen": "", "seniority": "", "fortalezas": [], "oportunidades": [], "palabras_clave": {"admin": [], "ia": [], "odoo": []}}`, más `analisis_de_cv = cv_actualizado` y `analisis_actualizado = now()`. Usar `palabras_clave`, la seniority y las fortalezas para armar las búsquedas y ordenar las ofertas (`prio`) por coincidencia con el CV. Si el análisis ya está al día, reutilizarlo.
 1. Leer `estados` donde `status = 'descartado'` y no volver a proponer esos `job_id`.
 2. Borrar de `ofertas` las que estén `removed` o descartadas.
 3. Insertar las ofertas nuevas en `ofertas` (id nuevo, `bloque` = `admin`/`ia`/`odoo`, `prio`, `nuevo = true`).

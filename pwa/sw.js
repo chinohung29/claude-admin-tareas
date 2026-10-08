@@ -1,6 +1,6 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL = `shell-${VERSION}`;
-const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'vendor/supabase.js',
+const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'vendor/supabase.js', 'cv.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
