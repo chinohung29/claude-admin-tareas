@@ -348,7 +348,6 @@ async function entrar(s) {
     return;
   }
   mostrarApp();
-  try { if (!localStorage.getItem('lmh_pass_visto')) { passPanel(true); passMsg('Creá una contraseña para poder entrar también desde el celu.'); } } catch (e) {}
   const cache = readJSON(CACHE_KEY, null);
   if (cache) { items = cache.items || []; state = cache.state || state; showAviso(); render(); }
   await cargar();
@@ -376,21 +375,6 @@ document.getElementById('loginLink').addEventListener('click', async () => {
   msg.textContent = error ? 'No se pudo enviar el link: ' + error.message : 'Listo. Abrí el link que te llegó a ' + email + ' en este mismo dispositivo.';
 });
 
-// Contraseña: se crea o cambia estando ya adentro (por ejemplo, tras entrar con el link del mail).
-function passMsg(t) { const m = document.getElementById('passMsg'); m.hidden = !t; m.textContent = t || ''; }
-function passPanel(abrir) { document.getElementById('passForm').hidden = !abrir; if (!abrir) passMsg(''); }
-document.getElementById('passAbrir').addEventListener('click', () => passPanel(document.getElementById('passForm').hidden));
-document.getElementById('passCerrar').addEventListener('click', () => { try { localStorage.setItem('lmh_pass_visto', '1'); } catch (e) {} passPanel(false); });
-document.getElementById('passForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const a = document.getElementById('passNueva').value, b = document.getElementById('passRepetir').value;
-  if (a !== b) { passMsg('Las contraseñas no coinciden.'); return; }
-  const { error } = await sb.auth.updateUser({ password: a });
-  if (error) { passMsg('No se pudo guardar: ' + error.message); return; }
-  try { localStorage.setItem('lmh_pass_visto', '1'); } catch (er) {}
-  e.target.reset(); passPanel(false);
-  passMsg('Contraseña guardada. Ya podés entrar con email y contraseña desde cualquier dispositivo.');
-});
 document.getElementById('logout').addEventListener('click', async () => {
   try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
   await sb.auth.signOut();

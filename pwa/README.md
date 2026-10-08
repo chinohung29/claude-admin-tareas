@@ -22,10 +22,13 @@ App estática instalable, sin build. Datos y login en Supabase (proyecto `LMH_Fl
 3. Insertar las ofertas nuevas en `ofertas` (id nuevo, `bloque` = `admin`/`ia`/`odoo`, `prio`, `nuevo = true`).
 
 ## Login
-Email y contraseña (`signInWithPassword`), o link mágico por mail como alternativa (`signInWithOtp`, sin crear usuarios nuevos). La contraseña se crea o cambia desde la app, ya con sesión (botón "Contraseña"); la app la ofrece la primera vez que se entra en un dispositivo. Ojo: es la contraseña de la cuenta de Supabase, compartida con otras apps del proyecto que usen el mismo email. Hay que agregar la URL donde se publique la app en Supabase → Authentication → URL Configuration → Redirect URLs.
+Email y contraseña (`signInWithPassword`) con la contraseña que ya tiene la cuenta, o link mágico por mail (`signInWithOtp`, sin crear usuarios nuevos). La app no crea ni cambia contraseñas ni usuarios: el proyecto de Supabase se comparte con LMH Flow y no debe afectarla. Agregar la URL donde se publique la app en Supabase → Authentication → URL Configuration → Redirect URLs.
 
 ## Probar local
 `cd pwa && python3 -m http.server 8000` y abrir http://localhost:8000 (el service worker funciona en localhost; para el login, `http://localhost:8000` también tiene que estar en Redirect URLs).
 
 ## Publicar
 Servir `pwa/` por HTTPS (Netlify, GitHub Pages, etc.). Necesario para instalarla.
+
+## Separar de LMH Flow (pendiente)
+Hoy comparte con LMH Flow el proyecto de Supabase (esquema propio `busqueda_laboral`, con RLS por email) y los usuarios de Auth. Cambios hechos en el proyecto compartido: el esquema y sus tablas, el esquema agregado a `pgrst.db_schemas` del rol `authenticator`, las tablas `estados` y `perfil` en la publicación `supabase_realtime`, y las Redirect URLs de Auth. Al pasar a un proyecto propio: exportar las tablas del esquema, crear el esquema en el proyecto nuevo, cambiar `SUPABASE_URL` y `SUPABASE_KEY` en `app.js`, y en el viejo borrar el esquema, quitar la tabla de la publicación y volver `pgrst.db_schemas` a `public, graphql_public`.

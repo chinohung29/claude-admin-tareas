@@ -19,7 +19,7 @@
 <div class="wrap" id="login" hidden>
   <header>
     <h1>Seguimiento de búsqueda laboral</h1>
-    <p class="sub">Acceso privado. Entrá con tu email y contraseña. Si todavía no creaste una contraseña, pedí un link por mail, entrá desde la computadora y creala desde la app.</p>
+    <p class="sub">Acceso privado. Entrá con tu email y la contraseña de tu cuenta, o pedí un link por mail. Esta app no crea ni cambia contraseñas.</p>
   </header>
   <form id="loginForm" class="add">
     <input id="loginEmail" type="email" value="lamh2903@gmail.com" required autocomplete="username" aria-label="Email">
@@ -35,17 +35,8 @@
     <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Se sincroniza entre tus dispositivos.</p>
     <div class="bar">
       <button type="button" id="install" hidden>Instalar app</button>
-      <button type="button" id="passAbrir">Contraseña</button>
       <button type="button" id="logout">Cerrar sesión</button>
     </div>
-    <form id="passForm" class="add" hidden>
-      <p class="meta" style="flex-basis:100%">Contraseña para entrar desde cualquier dispositivo. Es la de tu cuenta de Supabase (la misma de otras apps del mismo proyecto que usen este email, por ejemplo LMH Flow).</p>
-      <input id="passNueva" type="password" minlength="8" required autocomplete="new-password" placeholder="Nueva contraseña (mín. 8)" aria-label="Nueva contraseña">
-      <input id="passRepetir" type="password" minlength="8" required autocomplete="new-password" placeholder="Repetila" aria-label="Repetir contraseña">
-      <button type="submit">Guardar contraseña</button>
-      <button type="button" id="passCerrar">Ahora no</button>
-    </form>
-    <p class="aviso" id="passMsg" hidden></p>
     <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
   </header>
   <p class="aviso" id="aviso"></p>
