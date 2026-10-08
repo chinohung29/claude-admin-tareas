@@ -9,7 +9,7 @@ App estática instalable, sin build. Datos y login en su propio proyecto de Supa
 - `../netlify.toml`: publica la carpeta `pwa/`.
 
 ## Datos (esquema `public`)
-- `ofertas`: el listado diario. Lo escribe la rutina; la app solo lee.
+- `ofertas`: el listado diario. Lo escribe la rutina; la app solo lee. La app muestra las Activas por defecto y tiene filtros para Archivadas, Descartadas y Todas; archiva sola las pendientes de más de 15 días.
 - `estados`: estado por oferta (`pendiente`/`postulado`/`descartado`, `archived`, `removed`). Sincronizado en tiempo real. Sin conexión se guarda local y se sube al volver.
 - `manuales`: ofertas agregadas a mano desde la app.
 - `perfil`: una sola fila (`id = 'principal'`). La app guarda `cv_nombre`, `cv_texto` y `cv_actualizado` (el archivo se lee en el navegador; no se sube). El agente escribe `analisis` (jsonb), `analisis_de_cv` y `analisis_actualizado`; la app no puede escribir esas columnas.
@@ -21,10 +21,7 @@ Email y contraseña (`signInWithPassword`). La cuenta se crea una sola vez desde
 Recomendado: en Supabase → Authentication → URL Configuration, poner como Site URL `https://busqueda-laboral-lmh.netlify.app` (por defecto apunta a localhost; solo afecta a mails de Auth).
 
 ## Rutina diaria
-0. Leer `perfil`. Si hay `cv_texto` y `analisis_de_cv` es null o menor que `cv_actualizado`, analizar el CV y escribir `analisis` con esta forma: `{"resumen": "", "seniority": "", "fortalezas": [], "oportunidades": [], "palabras_clave": {"admin": [], "ia": [], "odoo": []}}`, más `analisis_de_cv = cv_actualizado` y `analisis_actualizado = now()`. Usar `palabras_clave`, la seniority y las fortalezas para armar las búsquedas y ordenar las ofertas (`prio`) por coincidencia con el CV. Si el análisis ya está al día, reutilizarlo.
-1. Leer `estados` donde `status = 'descartado'` y no volver a proponer esos `job_id`.
-2. Borrar de `ofertas` las que estén `removed` o descartadas.
-3. Insertar las ofertas nuevas en `ofertas` (id nuevo, `bloque` = `admin`/`ia`/`odoo`, `prio`, `nuevo = true`).
+El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` solo avisos verificados de hasta 15 días con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).
 
 ## Probar local
 `cd pwa && python3 -m http.server 8000` y abrir http://localhost:8000 (el service worker funciona en localhost).

@@ -56,7 +56,7 @@ async function vaciarPendientes() {
 }
 function guardarCache() { writeJSON(CACHE_KEY, { items, state }); }
 
-function allItems() { return items.concat(state.custom).filter(i => !state.removed[i.id]); }
+function allItems() { return items.concat(state.custom); }
 function daysAgo(iso) {
   if (!iso) return null;
   return Math.floor((TODAY - new Date(iso + 'T12:00:00')) / 86400000);
@@ -85,7 +85,6 @@ function est(i) { return state.status[i.id] || 'pendiente'; }
 
 function setStatus(id, s) { state.status[id] = s; render(); guardar([id]); }
 function setArchived(id, v) { state.archived[id] = v; render(); guardar([id]); }
-function quitar(ids) { ids.forEach(id => { state.removed[id] = true; }); render(); guardar(ids); }
 async function addCustom(bloque, titulo, empresa, modalidad, url) {
   if (!titulo) return;
   const it = { id: 'custom_' + Date.now(), bloque, titulo, empresa, modalidad, url: url || null, iso: TODAY.toISOString().slice(0, 10) };
@@ -133,24 +132,35 @@ function rowFor(i, archivedView) {
   return row;
 }
 
+const FILTROS = [
+  { id: 'activas', nombre: 'Activas' },
+  { id: 'archivadas', nombre: 'Archivadas' },
+  { id: 'descartadas', nombre: 'Descartadas' },
+  { id: 'todas', nombre: 'Todas' }
+];
+let filtro = readJSON('lmh_filtro', 'activas');
+function categoria(i) { return est(i) === 'descartado' ? 'descartadas' : isArchived(i) ? 'archivadas' : 'activas'; }
+document.getElementById('tally').addEventListener('click', e => {
+  const b = e.target.closest('button[data-f]');
+  if (!b) return;
+  filtro = b.dataset.f; writeJSON('lmh_filtro', filtro); render();
+});
+
 function render() {
   const all = allItems();
-  const counts = { pendiente: 0, postulado: 0, descartado: 0, archivado: 0 };
+  const n = { activas: 0, archivadas: 0, descartadas: 0, todas: all.length, pendiente: 0, postulado: 0 };
   all.forEach(i => {
-    if (est(i) === 'descartado') counts.descartado++;
-    else if (isArchived(i)) counts.archivado++;
-    else counts[est(i)]++;
+    const c = categoria(i); n[c]++;
+    if (c === 'activas') n[est(i)]++;
   });
   document.getElementById('tally').innerHTML =
-    `<span>Pendientes <span class="n">${counts.pendiente}</span></span>
-     <span>Postulados <span class="n">${counts.postulado}</span></span>
-     <span>Descartados <span class="n">${counts.descartado}</span></span>
-     <span>Archivados <span class="n">${counts.archivado}</span></span>`;
+    FILTROS.map(f => `<button type="button" data-f="${f.id}" class="${filtro === f.id ? 'on' : ''}">${f.nombre} <span class="n">${n[f.id]}</span></button>`).join('') +
+    `<span class="resumen">Pendientes <span class="n">${n.pendiente}</span> · Postulados <span class="n">${n.postulado}</span></span>`;
 
   const seg = document.getElementById('seguimiento');
   seg.innerHTML = '';
   const post = all.filter(i => est(i) === 'postulado');
-  if (post.length) {
+  if (filtro === 'activas' && post.length) {
     const box = document.createElement('section');
     box.className = 'bloque';
     box.innerHTML = '<h2>Seguimiento de postulados</h2><p class="desc">Avisos a los que te postulaste. Confirmá a mano que sigan vigentes.</p><div class="items"></div>';
@@ -166,6 +176,7 @@ function render() {
 
   const cont = document.getElementById('bloques');
   cont.innerHTML = '';
+  const vacio = { activas: 'No hay ofertas activas en este bloque.', archivadas: 'No hay archivadas.', descartadas: 'No hay descartadas.', todas: 'No hay ofertas.' };
   BLOQUES.forEach(b => {
     const sec = document.createElement('section');
     sec.className = 'bloque';
@@ -181,28 +192,11 @@ function render() {
          <button type="submit">Agregar</button>
        </form>`;
     const wrap = sec.querySelector('.items');
-    const mine = all.filter(i => i.bloque === b.id);
-    const desc = mine.filter(i => est(i) === 'descartado');
-    const activos = mine.filter(i => est(i) !== 'descartado' && !isArchived(i)).sort((a, c) => (a.prio || 99) - (c.prio || 99));
-    const arch = mine.filter(i => est(i) !== 'descartado' && isArchived(i));
-    activos.forEach(i => wrap.appendChild(rowFor(i, false)));
-    const form = sec.querySelector('form.add');
-    if (desc.length) {
-      const det = document.createElement('details');
-      det.className = 'archivo desc-box';
-      det.innerHTML = '<summary>Descartados (' + desc.length + ')</summary><div class="meta"><button type="button" class="quitar">Quitar del listado</button> Los saca de la lista y no vuelven a mostrarse.</div>';
-      det.querySelector('.quitar').addEventListener('click', () => quitar(desc.map(i => i.id)));
-      desc.forEach(i => det.appendChild(rowFor(i, false)));
-      sec.insertBefore(det, form);
-    }
-    if (arch.length) {
-      const det = document.createElement('details');
-      det.className = 'archivo';
-      det.innerHTML = '<summary>Archivados (' + arch.length + ')</summary>';
-      arch.forEach(i => det.appendChild(rowFor(i, true)));
-      sec.insertBefore(det, form);
-    }
-    form.addEventListener('submit', e => {
+    const lista = all.filter(i => i.bloque === b.id && (filtro === 'todas' || categoria(i) === filtro))
+      .sort((x, y) => (x.prio || 99) - (y.prio || 99));
+    if (!lista.length) wrap.innerHTML = '<p class="meta">' + vacio[filtro] + '</p>';
+    lista.forEach(i => wrap.appendChild(rowFor(i, categoria(i) === 'archivadas')));
+    sec.querySelector('form.add').addEventListener('submit', e => {
       e.preventDefault();
       const f = e.target;
       addCustom(b.id, f.titulo.value.trim(), f.empresa.value.trim(), f.modalidad.value.trim(), f.url.value.trim());
@@ -211,7 +205,6 @@ function render() {
     cont.appendChild(sec);
   });
 }
-
 function showAviso() {
   document.getElementById('aviso').textContent =
     'Cada bloque está ordenado por prioridad según coincidencia con tu perfil. Si no figura sueldo, queda como A convenir. Los avisos nuevos son los publicados en los últimos 15 días; cuando la fecha dice "sin verificar", revisala directo en el aviso.';
