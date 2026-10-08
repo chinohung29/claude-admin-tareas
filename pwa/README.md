@@ -15,6 +15,7 @@ Cada tabla lleva `user_id` y los permisos (RLS) dejan a cada usuario ver y escri
 - `estados`: estado por oferta (`pendiente`/`postulado`/`descartado`, `archived`). Clave `(user_id, job_id)`. Sincronizado en tiempo real; sin conexión se guarda local y se sube al volver.
 - `manuales`: ofertas agregadas a mano desde la app.
 - `perfil`: una fila por usuario con `cv_nombre`, `cv_texto` y `cv_actualizado` (el archivo se lee en el navegador; no se sube). El agente escribe `analisis`, `analisis_de_cv` y `analisis_actualizado`; la app no puede escribir esas columnas.
+- `consentimientos`: constancia de qué se aceptó, versión y fecha (solo se agregan filas). El registro exige aceptar términos y privacidad (lo valida el servidor); guardar el CV exige un consentimiento aparte para IA y transferencia al exterior.
 - `legado_*`: datos de prueba que se asignan a `lamh2903@gmail.com` al confirmar su mail (cerradas a los usuarios).
 - La clave `sb_publishable_…` del código es pública por diseño.
 
@@ -23,6 +24,11 @@ Email y contraseña. Cualquiera puede crear su cuenta; Supabase envía un mail d
 
 ## Rutina diaria (provisoria)
 Va a ser reemplazada por el agente automático descrito en `../docs/producto.md`. Mientras tanto: El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` avisos de hasta 15 días (si la fecha no se puede verificar se incluyen con `iso` null y la app los marca como "Fecha sin verificar") con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).
+
+## Portales, legales y datos del usuario
+- Cada bloque tiene «Buscar en los portales de empleo»: enlaces a Computrabajo, Indeed, Bumeran y LinkedIn con las palabras clave del análisis del CV. No se lee ni copia nada de los portales.
+- `terminos.html` y `privacidad.html` se generan desde `docs/legal/*.md` (borradores: los datos a completar salen resaltados). Para regenerarlos hay que volver a convertir los `.md`.
+- «Descargar mis datos» (archivo JSON con todo) y «Eliminar mi cuenta» (función `eliminar-cuenta` del servidor, borra la cuenta y sus datos en cascada).
 
 ## Instalación y tutorial
 - Aviso de instalación (`#instalarBanner`): en celulares, o donde el navegador ofrezca `beforeinstallprompt`. En Android/Chrome muestra el botón «Instalar» (usa el prompt nativo); en iOS/Safari explica «Compartir → Añadir a pantalla de inicio» (iOS no tiene prompt programático); en otros navegadores móviles indica el menú. No aparece si ya está instalada y «Ahora no» lo oculta 7 días. Un sitio no puede forzar la instalación sin que la persona toque el botón: es una restricción de los navegadores.

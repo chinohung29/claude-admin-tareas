@@ -10,6 +10,7 @@ const SUPABASE_KEY = 'sb_publishable_CE2MOsoNw_D0aCvWcbYk0w_INz9XXX1';
 const uid = () => (session && session.user ? session.user.id : 'anon');
 const cacheKey = () => 'lmh_job_cache_v3:' + uid();
 const pendKey = () => 'lmh_job_pending_v3:' + uid();
+const TYC_VERSION = '2026-10-v1';
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const TODAY = new Date();
 
@@ -19,6 +20,7 @@ let items = [];
 let state = { status: {}, archived: {}, removed: {}, custom: [] };
 let session = null;
 let perfil = null;
+let consentCV = false;
 
 function readJSON(k, fallback) {
   try { const raw = localStorage.getItem(k); if (raw) return JSON.parse(raw); } catch (e) {}
@@ -146,6 +148,47 @@ document.getElementById('tally').addEventListener('click', e => {
   filtro = b.dataset.f; writeJSON('lmh_filtro', filtro); render();
 });
 
+// ---- Búsqueda en los portales: enlaces a las búsquedas, sin leer ni copiar nada de los portales ----
+const KW_DEFECTO = {
+  admin: ['analista administrativo', 'analista de cobranzas', 'analista de facturación', 'cuentas a pagar'],
+  ia: ['automatización de procesos', 'desarrollador IA', 'desarrollador web', 'analista de datos'],
+  odoo: ['analista funcional odoo', 'consultor odoo', 'implementador odoo']
+};
+const slugBusqueda = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const PORTALES = [
+  { n: 'Computrabajo', u: k => 'https://ar.computrabajo.com/trabajo-de-' + slugBusqueda(k) },
+  { n: 'Indeed', u: k => 'https://ar.indeed.com/jobs?q=' + encodeURIComponent(k) + '&l=Argentina&fromage=14' },
+  { n: 'Bumeran', u: k => 'https://www.bumeran.com.ar/empleos-busqueda-' + slugBusqueda(k) + '.html' },
+  { n: 'LinkedIn', u: k => 'https://www.linkedin.com/jobs/search/?keywords=' + encodeURIComponent(k) + '&location=Argentina&f_TPR=r1296000' }
+];
+const kwElegida = {};
+const portalesAbierto = {};
+function palabrasClave(bloque) {
+  const a = perfil && perfil.analisis && perfil.analisis.palabras_clave && perfil.analisis.palabras_clave[bloque];
+  return Array.isArray(a) && a.length ? { lista: a.map(String), deCV: true } : { lista: KW_DEFECTO[bloque], deCV: false };
+}
+function portalesPara(b) {
+  const { lista, deCV } = palabrasClave(b.id);
+  if (!lista.includes(kwElegida[b.id])) kwElegida[b.id] = lista[0];
+  const det = document.createElement('details');
+  det.className = 'portales';
+  det.open = !!portalesAbierto[b.id];
+  det.addEventListener('toggle', () => { portalesAbierto[b.id] = det.open; });
+  det.innerHTML = '<summary>Buscar en los portales de empleo</summary>' +
+    '<div class="portales-cuerpo"><label class="meta">Búsqueda: <select aria-label="Palabras clave de la búsqueda">' +
+    lista.map(k => '<option' + (k === kwElegida[b.id] ? ' selected' : '') + '>' + esc(k) + '</option>').join('') +
+    '</select></label><div class="portales-links"></div>' +
+    '<p class="meta">' + (deCV ? 'Las palabras clave salen del análisis de tu CV.' : 'Palabras clave de ejemplo: cargá tu CV y se adaptan a tu perfil.') +
+    ' Indeed y LinkedIn ya muestran solo los últimos 15 días; en Computrabajo y Bumeran ordená por fecha en la página. Se abre el portal original, donde te postulás vos.</p></div>';
+  const pintar = () => {
+    det.querySelector('.portales-links').innerHTML = PORTALES.map(p =>
+      '<a class="btn-portal" href="' + esc(p.u(kwElegida[b.id])) + '" target="_blank" rel="noopener">' + p.n + '</a>').join('');
+  };
+  det.querySelector('select').addEventListener('change', e => { kwElegida[b.id] = e.target.value; pintar(); });
+  pintar();
+  return det;
+}
+
 function render() {
   const all = allItems();
   const n = { activas: 0, archivadas: 0, descartadas: 0, todas: all.length, pendiente: 0, postulado: 0 };
@@ -192,6 +235,7 @@ function render() {
          <button type="submit">Agregar</button>
        </form>`;
     const wrap = sec.querySelector('.items');
+    sec.insertBefore(portalesPara(b), wrap);
     const lista = all.filter(i => i.bloque === b.id && (filtro === 'todas' || categoria(i) === filtro))
       .sort((x, y) => (x.prio || 99) - (y.prio || 99));
     if (!lista.length) wrap.innerHTML = '<p class="meta">' + vacio[filtro] + '</p>';
@@ -249,7 +293,10 @@ async function cargarPerfil() {
   const { data, error } = await sb.from('perfil').select('*').maybeSingle();
   if (error) return;
   perfil = data;
+  const c = await sb.from('consentimientos').select('id').eq('tipo', 'cv_ia_transferencia').eq('version', TYC_VERSION).limit(1);
+  consentCV = !c.error && c.data.length > 0;
   renderPerfil();
+  render();
 }
 
 function lista(titulo, arr) {
@@ -285,6 +332,8 @@ function cvMsg(t) {
   m.hidden = !t; m.textContent = t || '';
 }
 function cvEditar(texto, nombre) {
+  document.getElementById('cvConsent').checked = false;
+  document.getElementById('cvGuardar').disabled = true;
   document.getElementById('cvTexto').value = texto;
   document.getElementById('cvEditor').dataset.nombre = nombre || '';
   document.getElementById('cvEditor').hidden = false;
@@ -301,10 +350,17 @@ document.getElementById('cvFile').addEventListener('change', async e => {
 });
 document.getElementById('cvPegar').addEventListener('click', () => { cvEditar('', 'texto pegado'); cvMsg(''); });
 document.getElementById('cvCancelar').addEventListener('click', () => { document.getElementById('cvEditor').hidden = true; cvMsg(''); });
+document.getElementById('cvConsent').addEventListener('change', e => { document.getElementById('cvGuardar').disabled = !e.target.checked; });
 document.getElementById('cvGuardar').addEventListener('click', async () => {
+  if (!document.getElementById('cvConsent').checked) { cvMsg('Para guardar el CV tenés que dar tu consentimiento.'); return; }
   const texto = document.getElementById('cvTexto').value.trim().slice(0, CV_MAX_CHARS);
   if (texto.length < 80) { cvMsg('El texto es muy corto para analizarlo.'); return; }
   const fila = { user_id: uid(), cv_nombre: document.getElementById('cvEditor').dataset.nombre || null, cv_texto: texto, cv_actualizado: new Date().toISOString() };
+  if (!consentCV) {
+    const c = await sb.from('consentimientos').insert({ tipo: 'cv_ia_transferencia', version: TYC_VERSION, origen: 'carga_cv' });
+    if (c.error) { cvMsg('No se pudo registrar tu consentimiento: ' + c.error.message); return; }
+    consentCV = true;
+  }
   const { error } = await sb.from('perfil').upsert(fila, { onConflict: 'user_id' });
   if (error) { cvMsg('No se pudo guardar: ' + error.message); return; }
   perfil = { ...(perfil || {}), ...fila };
@@ -328,7 +384,7 @@ function suscribir() {
       guardarCache(); render();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'perfil' }, p => {
-      if (p.new && p.new.user_id === uid()) { perfil = p.new; renderPerfil(); }
+      if (p.new && p.new.user_id === uid()) { perfil = p.new; renderPerfil(); render(); }
     })
     .subscribe();
 }
@@ -362,9 +418,10 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
   const email = document.getElementById('signupEmail').value.trim();
   const a = document.getElementById('signupPass').value, b = document.getElementById('signupPass2').value;
   const msg = document.getElementById('loginMsg');
+  if (!document.getElementById('signupAcepto').checked) { msg.textContent = 'Para crear la cuenta tenés que aceptar los Términos y la Política de Privacidad.'; return; }
   if (a !== b) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
   msg.textContent = 'Creando la cuenta…';
-  const { data, error } = await sb.auth.signUp({ email, password: a, options: { emailRedirectTo: location.origin + location.pathname } });
+  const { data, error } = await sb.auth.signUp({ email, password: a, options: { emailRedirectTo: location.origin + location.pathname, data: { acepto_tyc_version: TYC_VERSION } } });
   if (error) { msg.textContent = 'No se pudo crear la cuenta: ' + error.message; return; }
   if (data.session) { msg.textContent = ''; return; }
   msg.textContent = 'Te enviamos un mail a ' + email + '. Abrí el link para confirmar tu cuenta y después entrá con tu contraseña.';
@@ -491,3 +548,27 @@ document.getElementById('ayuda').addEventListener('click', () => abrirTutorial(0
 function tutorialPrimeraVez() {
   try { if (!localStorage.getItem('lmh_tutorial_visto')) abrirTutorial(0); } catch (e) {}
 }
+
+
+// ---- Tus datos: acceso y supresión ----
+document.getElementById('descargarDatos').addEventListener('click', async () => {
+  const tablas = ['profiles', 'perfil', 'estados', 'manuales', 'ofertas', 'consentimientos'];
+  const res = await Promise.all(tablas.map(t => sb.from(t).select('*')));
+  if (res.some(r => r.error)) { alert('No se pudieron leer tus datos. Revisá la conexión e intentá de nuevo.'); return; }
+  const datos = { exportado_el: new Date().toISOString(), email: session.user.email };
+  tablas.forEach((t, i) => { datos[t] = res[i].data; });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' }));
+  a.download = 'mis-datos-' + TODAY.toISOString().slice(0, 10) + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+document.getElementById('eliminarCuenta').addEventListener('click', async () => {
+  const t = prompt('Vas a borrar tu cuenta y todos tus datos (CV, estados, ofertas). No se puede deshacer.\n\nEscribí ELIMINAR para confirmar:');
+  if (t === null) return;
+  if (t.trim() !== 'ELIMINAR') { alert('No se borró nada: tenías que escribir ELIMINAR.'); return; }
+  const { error } = await sb.functions.invoke('eliminar-cuenta', { method: 'POST' });
+  if (error) { alert('No se pudo eliminar la cuenta. Escribinos y la eliminamos a mano.'); return; }
+  try { Object.keys(localStorage).filter(k => k.startsWith('lmh_job_')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  await sb.auth.signOut();
+});

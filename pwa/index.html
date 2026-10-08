@@ -31,9 +31,11 @@
     <input id="signupEmail" type="email" required placeholder="Email" autocomplete="username" aria-label="Email">
     <input id="signupPass" type="password" minlength="8" required autocomplete="new-password" placeholder="Contraseña (mín. 8)" aria-label="Contraseña nueva">
     <input id="signupPass2" type="password" minlength="8" required autocomplete="new-password" placeholder="Repetila" aria-label="Repetir contraseña">
+    <label class="check"><input type="checkbox" id="signupAcepto" required> He leído y acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> y la <a href="privacidad.html" target="_blank" rel="noopener">Política de Privacidad</a>.</label>
     <button type="submit">Crear cuenta</button>
   </form>
   <p class="aviso" id="loginMsg"></p>
+  <p class="meta"><a href="terminos.html" target="_blank" rel="noopener">Términos y Condiciones</a> · <a href="privacidad.html" target="_blank" rel="noopener">Política de Privacidad</a></p>
 </div>
 <div class="wrap" id="app" hidden>
   <header>
@@ -41,6 +43,8 @@
     <p class="sub">Rutina de lunes a viernes: revisar avisos nuevos y marcar el estado de cada uno. Se sincroniza entre tus dispositivos.</p>
     <div class="bar">
       <button type="button" id="ayuda">Ayuda</button>
+      <button type="button" id="descargarDatos">Descargar mis datos</button>
+      <button type="button" id="eliminarCuenta">Eliminar mi cuenta</button>
       <button type="button" id="logout">Cerrar sesión</button>
     </div>
     <p id="offline" hidden>Sin conexión: se muestra la última versión guardada.</p>
@@ -57,13 +61,14 @@
     </form>
     <div id="cvEditor" hidden>
       <textarea id="cvTexto" rows="12" aria-label="Texto del CV"></textarea>
-      <div class="bar"><button type="button" id="cvGuardar">Guardar CV</button><button type="button" id="cvCancelar">Cancelar</button></div>
+      <label class="check"><input type="checkbox" id="cvConsent"> Doy mi <b>consentimiento expreso</b> para que el texto de mi CV se trate con inteligencia artificial para analizar mi perfil y ordenar ofertas, y para que se transfiera a proveedores ubicados en el exterior (Estados Unidos y Brasil), según la <a href="privacidad.html" target="_blank" rel="noopener">Política de Privacidad</a>. Puedo retirarlo eliminando mi CV o mi cuenta.</label>
+      <div class="bar"><button type="button" id="cvGuardar" disabled>Guardar CV</button><button type="button" id="cvCancelar">Cancelar</button></div>
     </div>
     <p class="aviso" id="cvMsg" hidden></p>
   </section>
   <div id="seguimiento"></div>
   <div id="bloques"></div>
-  <footer>Visto el <span id="fecha"></span>. Tus estados se sincronizan; sin conexión se guardan en el dispositivo y se suben al volver. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte.</footer>
+  <footer>Visto el <span id="fecha"></span>. Tus estados se sincronizan; sin conexión se guardan en el dispositivo y se suben al volver. Los enlaces abren el portal original; confirmá modalidad y sueldo antes de postularte. <a href="terminos.html" target="_blank" rel="noopener">Términos</a> · <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a></footer>
 </div>
 <div id="instalarBanner" class="banner" role="region" aria-label="Instalar la app" hidden>
   <p id="instalarTexto"></p>
