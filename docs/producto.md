@@ -7,7 +7,8 @@ Estado: entorno de pruebas (proyecto Supabase `busqueda-laboral`, plan gratuito)
 2. **Fuentes.** Portales de empleo de Argentina: Computrabajo, Indeed, Bumeran y LinkedIn. El producto solo entrega enlaces: el usuario completa la postulación a mano en el portal. No lee ni copia el contenido de los portales.
 3. **Cobro.** $10.000 por mes en pesos, con suscripción de Mercado Pago, igual que LMH Flow (ver guía abajo). Producto ofrecido por una persona humana. Las búsquedas son solo en Argentina.
 4. **Claves y planes de pago** al lanzar: clave de la API de Claude y Supabase Pro.
-5. **Cuenta de pruebas.** `lamh2903@gmail.com` es un usuario más; sus datos de prueba se le asignan al confirmar el mail.
+5. **Región de los datos:** São Paulo (la más cercana a Argentina; no hay región argentina). Cubierto con consentimiento expreso y cláusulas con el proveedor; ver `docs/legal/analisis-normativo.md`.
+6. **Cuenta de pruebas.** `lamh2903@gmail.com` es un usuario más; sus datos de prueba se le asignan al confirmar el mail.
 
 ## Hecho
 - Modelo multiusuario con permisos por usuario (`supabase/schema.sql`).

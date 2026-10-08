@@ -20,6 +20,12 @@ Notas:
 - El análisis con IA no es una decisión sobre derechos del usuario, pero se informa y se ofrece revisión humana. La AAIP publicó guías sobre IA responsable que conviene leer antes de lanzar.
 - **Reforma en trámite:** hay proyectos de ley integral de datos personales en Diputados (por ejemplo 3397-D-2026 y 1751-D-2026) sin dictamen a septiembre de 2026. Siguen rigiendo la Ley 25.326 y su decreto. Hay que seguirlos: podrían cambiar plazos, multas y reglas de IA.
 
+### Decisión: la base de datos queda en São Paulo (Brasil)
+- No existe una región de Supabase en Argentina; São Paulo (`sa-east-1`) es la más cercana (menor demora). La ley no exige guardar los datos en Argentina: regula la **transferencia** (art. 12).
+- Según lo que se pudo consultar (Disposición 60-E/2016 y Resolución 34/2019), la lista de países con nivel adecuado incluye la Unión Europea y el EEE, Suiza, Reino Unido, Uruguay, Nueva Zelanda, Andorra, Guernsey, Jersey, Isla de Man, Islas Feroe, Canadá (sector privado) e Israel (datos automatizados). **Brasil no figura** y tampoco Estados Unidos **[verificar la lista vigente en el sitio de la AAIP]**.
+- Base legal para la transferencia a Brasil (Supabase) y a Estados Unidos (proveedor de IA, SerpApi con solo palabras clave): consentimiento expreso (ya incluido, menciona a Brasil y a Estados Unidos) y cláusulas contractuales modelo con cada proveedor **[confirmar que el contrato de Supabase y los de los otros proveedores las incluyan]**.
+- Mover la base a una región de país adecuado (Europa o Canadá) quitaría la necesidad de consentimiento solo para la base, pero el análisis del CV con IA seguiría requiriéndolo, y quedaría más lejos de los usuarios. Se descartó.
+
 ## 2. Consumidores: venta online de una suscripción
 | Norma | Qué exige | Cómo lo resolvemos |
 |---|---|---|
