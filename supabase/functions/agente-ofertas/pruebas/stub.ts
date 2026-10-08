@@ -10,6 +10,7 @@ function tabla(nombre: string) {
     eq(c: string, v: any) { filtros.push((r) => r[c] === v); return q },
     is(c: string, v: any) { filtros.push((r) => (v === null ? r[c] == null : r[c] === v)); return q },
     not(c: string, _o: string, v: any) { filtros.push((r) => !(v === null ? r[c] == null : r[c] === v)); return q },
+    in(c: string, v: any[]) { filtros.push((r) => v.includes(r[c])); return q },
     gte(c: string, v: any) { filtros.push((r) => r[c] >= v); return q },
     order() { return q }, limit() { return q },
     maybeSingle() { return Promise.resolve({ data: DB.tablas[nombre].filter((r: any) => filtros.every((f) => f(r)))[0] ?? null, error: null }) },

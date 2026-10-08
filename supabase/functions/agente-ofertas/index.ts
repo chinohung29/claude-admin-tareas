@@ -20,6 +20,7 @@ const SERP_URL = 'https://serpapi.com/search.json'
 const HORAS_ENTRE_BUSQUEDAS = Number(Deno.env.get('AGENTE_HORAS_ENTRE_BUSQUEDAS') ?? '6')
 const LIMITE_MENSUAL = Number(Deno.env.get('SERPAPI_LIMITE_MENSUAL') ?? '240') // plan gratuito: 250 por mes
 const NUEVAS_POR_BLOQUE = 15
+const NOMBRES_ORIGINALES: Record<string, string> = { admin: 'Administración y finanzas', ia: 'Tecnología, datos y automatización', odoo: 'Odoo y ERP' }
 const MINUTOS_CV_NUEVO = 30 // con un CV nuevo se puede buscar antes de las horas de espera, pero no más seguido que esto
 
 const corsHeaders = {
@@ -56,7 +57,21 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
   let analisis: Record<string, any> | null = perfil?.analisis ?? null
   let analizado = false
   if (perfil?.cv_texto && (!analisis || !perfil.analisis_de_cv || new Date(perfil.analisis_de_cv) < new Date(perfil.cv_actualizado ?? 0))) {
+    const antes: Record<string, string> = perfil.analisis?.bloques
+      ? Object.fromEntries(perfil.analisis.bloques.map((b: any) => [b.id, b.nombre]))
+      : NOMBRES_ORIGINALES // sin análisis previo, las ofertas guardadas salieron de las búsquedas de ejemplo
     analisis = analizarCV(perfil.cv_texto)
+    // Un bloque que cambió de rubro (o dejó de buscarse) no puede conservar avisos del rubro anterior: se archivan,
+    // salvo los que la persona ya marcó como postulados.
+    const despues: Record<string, string> = Object.fromEntries(analisis.bloques.map((b) => [b.id, b.nombre]))
+    const cambiados = BLOQUES.filter((b) => antes[b] !== despues[b])
+    if (cambiados.length) {
+      const { data: post } = await db.from('estados').select('job_id').eq('user_id', userId).eq('status', 'postulado')
+      const postulados = new Set((post ?? []).map((e) => e.job_id))
+      const { data: previas } = await db.from('ofertas').select('id').eq('user_id', userId).eq('archivado', false).in('bloque', cambiados)
+      const ids = (previas ?? []).map((o) => o.id).filter((id) => !postulados.has(id))
+      if (ids.length) await db.from('ofertas').update({ archivado: true }).eq('user_id', userId).in('id', ids)
+    }
     const { error: errAnalisis } = await db.from('perfil').update({
       analisis, analisis_actualizado: ahora.toISOString(), analisis_de_cv: perfil.cv_actualizado ?? ahora.toISOString(),
     }).eq('user_id', userId)

@@ -24,6 +24,8 @@ const GRUPOS: Grupo[] = [
     { termino: 'analista impositivo', pat: /impositiv|impuestos/ },
     { termino: 'liquidación de sueldos', pat: /liquidacion de sueldos|sueldos y jornales/ },
     { termino: 'analista de compras', pat: /\bcompras\b|abastecimiento/ },
+    { termino: 'analista de cuentas corrientes', pat: /cuentas? corrientes?|conciliacion de cuentas/ },
+    { termino: 'analista de operaciones comerciales', pat: /operaciones comerciales|ordenes de compra|gestion documental/ },
   ] },
   { nombre: 'Tecnología, datos y automatización', bloque: 'ia', pedidas: ['Python', 'SQL', 'Power BI', 'Inglés', 'Gestión de proyectos'], roles: [
     { termino: 'desarrollador web', pat: /desarrollador|programador|developer|front.?end|back.?end|full.?stack/ },
@@ -37,6 +39,9 @@ const GRUPOS: Grupo[] = [
     { termino: 'analista funcional odoo', pat: /odoo/ },
     { termino: 'consultor ERP', pat: /\berp\b|\bsap\b|netsuite|bejerman|\btango\b/ },
     { termino: 'analista funcional', pat: /analista funcional|consultor funcional/ },
+  ] },
+  { nombre: 'eCommerce', pedidas: ['Excel avanzado', 'Inglés', 'Power BI'], roles: [
+    { termino: 'analista de ecommerce', pat: /e-?commerce|comercio electronico/ },
   ] },
   { nombre: 'Ventas y comercial', pedidas: ['Inglés', 'Excel avanzado', 'Atención al cliente'], roles: [
     { termino: 'ejecutivo de ventas', pat: /ventas|vendedor|comercial/ },
@@ -129,7 +134,9 @@ export function analizarCV(texto: string): Analisis {
       return { termino: r.termino, puntaje: veces ? Math.min(veces, 6) + (r.pat.test(inicio) ? 4 : 0) : 0 }
     }).filter((r) => r.puntaje > 0).sort((a, b) => b.puntaje - a.puntaje)
     return { g, roles, puntaje: roles.reduce((s, r) => s + r.puntaje, 0) }
-  }).filter((x) => x.puntaje >= 3).sort((a, b) => b.puntaje - a.puntaje).slice(0, BLOQUES.length)
+  }).filter((x) => x.puntaje >= 3).sort((a, b) => b.puntaje - a.puntaje)
+    .filter((x, _i, todos) => x.puntaje >= todos[0].puntaje * 0.4) // los rubros secundarios muy flojos no se buscan
+    .slice(0, BLOQUES.length)
 
   // Cada grupo conserva su bloque si es una de las tres familias; el resto ocupa los bloques que queden libres.
   const ocupados = new Set<Bloque>(puntuados.map((x) => x.g.bloque).filter((b): b is Bloque => !!b))

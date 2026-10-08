@@ -91,4 +91,10 @@ assert.ok(a4.sin_coincidencias); assert.deepEqual(a4.palabras_clave.admin, ['Mae
 console.log('ok CV sin rubro conocido ->', a4.palabras_clave.admin, a4.sin_coincidencias)
 assert.equal(detectarSeniority('Estudiante, primer empleo'), 'junior')
 assert.equal(detectarSeniority('Analista'), 'no determinado')
+// CV administrativo con operaciones comerciales y eCommerce (texto genérico): administración manda, sin rubros flojos
+const a5 = analizarCV('ANALISTA ADMINISTRATIVO | OPERACIONES COMERCIALES | ECOMMERCE\nExperiencia en gestión documental, facturación, órdenes de compra, devoluciones, cobranzas, conciliación de cuentas. Ejecutivo de cuentas B2B en marketing. SAP, CRM, Excel.')
+assert.equal(a5.bloques[0].nombre, 'Administración y finanzas')
+assert.ok(a5.palabras_clave.admin.includes('analista administrativo') && a5.palabras_clave.admin.includes('analista de facturación'))
+assert.ok(a5.bloques.length <= 3)
+console.log('ok CV administrativo/ecommerce ->', a5.bloques.map((b) => b.nombre), a5.palabras_clave)
 console.log('TODAS LAS PRUEBAS PASARON')

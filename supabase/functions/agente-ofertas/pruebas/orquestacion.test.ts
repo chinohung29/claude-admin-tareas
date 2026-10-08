@@ -18,7 +18,7 @@ const pedir = (b: any = {}, h: any = {}) => handler(new Request('http://x', { me
 const oferta = (title: string, extra: any = {}) => ({ title, company_name: 'ACME', location: 'Buenos Aires, Argentina', description: 'Facturación cobranzas Odoo', detected_extensions: { posted_at: 'hace 2 días' }, apply_options: [{ title: 'Computrabajo', link: 'https://ar.computrabajo.com/x-' + title.length }], ...extra })
 const dia = Math.floor((Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 86_400_000)
 const kw = (lista: string[]) => lista[dia % lista.length]
-const CV = 'Analista administrativo con experiencia en facturación, cobranzas y Odoo contable.'
+const CV = 'Analista administrativo con experiencia en facturación, cobranzas y cuentas a pagar. Analista funcional Odoo: implementación de Odoo, soporte de Odoo y Odoo contable.'
 const KW = analizarCV(CV).palabras_clave // las búsquedas salen del CV, no de una lista fija
 assert.deepEqual(KW.ia, []); assert.ok(KW.admin.length && KW.odoo.length)
 
@@ -73,6 +73,8 @@ console.log('ok límite de frecuencia:', res.omitido, '→ próxima', res.proxim
 DB.tablas.perfil[0].cv_actualizado = new Date().toISOString()
 res = await (await pedir()).json(); assert.equal(res.omitido, 'reciente'); assert.equal(res.analizado, true) // recién buscó: espera 30 minutos, pero el análisis del CV nuevo ya queda hecho
 for (const b of DB.tablas.busquedas) b.ejecutado_el = new Date(Date.now() - 3_600_000).toISOString()
+const postulada = guardadas[0]
+DB.tablas.estados.push({ user_id: 'user-1', job_id: postulada.id, status: 'postulado', archived: null })
 DB.tablas.perfil[0].cv_actualizado = new Date().toISOString()
 DB.tablas.perfil[0].cv_texto = 'Enfermera profesional con 5 años de experiencia en terapia intensiva. Enfermería hospitalaria.'
 res = await (await pedir()).json()
@@ -80,6 +82,10 @@ assert.notEqual(res.omitido, 'reciente'); assert.equal(res.analizado, true)
 assert.equal(DB.tablas.perfil[0].analisis.bloques[0].nombre, 'Salud')
 assert.ok(llamadas.at(-1)!.includes('enfermero') || llamadas.some((u) => u.includes('enfermero')))
 console.log('ok CV nuevo: se vuelve a analizar y busca por el perfil nuevo →', JSON.stringify(res.nombres))
+// Los avisos de un bloque que cambió de rubro se archivan, salvo los postulados
+assert.equal(guardadas.find((o: any) => o.id === postulada.id).archivado, false)
+assert.ok(guardadas.filter((o: any) => o.id !== postulada.id).every((o: any) => o.archivado === true))
+console.log('ok al cambiar de rubro se archivan los avisos anteriores y se conserva el postulado')
 DB.tablas.perfil[0].cv_texto = CV; DB.tablas.perfil[0].analisis = null
 
 // 3) las descartadas no vuelven: si el mismo aviso ya fue descartado por el usuario, no se vuelve a guardar
