@@ -1,0 +1,13 @@
+[build]
+  publish = "pwa"
+
+# El service worker y el manifest no deben quedar cacheados por el CDN.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
