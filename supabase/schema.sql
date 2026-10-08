@@ -160,6 +160,26 @@ create policy arrepentimiento_propio on public.solicitudes_arrepentimiento
 revoke all on public.solicitudes_arrepentimiento from anon, authenticated;
 grant select on public.solicitudes_arrepentimiento to authenticated;
 
+-- Cada consulta a SerpApi (1 crédito). Sirve para limitar la frecuencia por usuario y controlar el cupo mensual.
+-- Solo la escribe el servidor (función agente-ofertas).
+create table public.busquedas (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  bloque text not null check (bloque in ('admin', 'ia', 'odoo')),
+  consulta text not null,
+  ejecutado_el timestamptz not null default now(),
+  resultados integer,
+  nuevas integer,
+  error text
+);
+create index busquedas_usuario_idx on public.busquedas (user_id, ejecutado_el desc);
+create index busquedas_fecha_idx on public.busquedas (ejecutado_el);
+alter table public.busquedas enable row level security;
+create policy busquedas_propias on public.busquedas
+  for select to authenticated using ((select auth.uid()) = user_id);
+revoke all on public.busquedas from anon, authenticated;
+grant select on public.busquedas to authenticated;
+
 -- Alta de cuenta: crea el perfil. Al confirmarse el mail del dueño de pruebas, hereda los datos de prueba.
 create or replace function public.handle_new_user()
 returns trigger

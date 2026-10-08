@@ -16,12 +16,16 @@ Cada tabla lleva `user_id` y los permisos (RLS) dejan a cada usuario ver y escri
 - `manuales`: ofertas agregadas a mano desde la app.
 - `perfil`: una fila por usuario con `cv_nombre`, `cv_texto` y `cv_actualizado` (el archivo se lee en el navegador; no se sube). El agente escribe `analisis`, `analisis_de_cv` y `analisis_actualizado`; la app no puede escribir esas columnas.
 - `consentimientos`: constancia de qué se aceptó, versión y fecha (solo se agregan filas). El registro exige aceptar términos y privacidad (lo valida el servidor); guardar el CV exige un consentimiento aparte para IA y transferencia al exterior.
+- `busquedas`: registro de cada consulta a SerpApi (usuario, bloque, palabra clave, resultados, nuevas, error). Solo la escribe el servidor.
 - `solicitudes_arrepentimiento`: constancia de cada revocación (código `ARR-…`, estado de la devolución). Solo la escribe el servidor.
 - `legado_*`: datos de prueba que se asignan a `lamh2903@gmail.com` al confirmar su mail (cerradas a los usuarios).
 - La clave `sb_publishable_…` del código es pública por diseño.
 
 ## Login
 Email y contraseña. Cualquiera puede crear su cuenta; Supabase envía un mail de confirmación. Para que el link vuelva a la app hay que configurar en Supabase → Authentication → URL Configuration: Site URL `https://busqueda-laboral-lmh.netlify.app` y esa misma URL en Redirect URLs. El servicio de correo integrado limita los mails por hora: para producción hace falta uno propio.
+
+## Buscar ofertas
+«Buscar ofertas ahora» llama a la función `agente-ofertas` (SerpApi, solo Argentina, hasta 15 días). Ver `docs/producto.md` para activarla (secreto `SERPAPI_KEY`) y para sus límites.
 
 ## Rutina diaria (provisoria)
 Va a ser reemplazada por el agente automático descrito en `../docs/producto.md`. Mientras tanto: El prompt completo para la tarea programada está en `../docs/prompt-rutina-diaria.md`. Resumen: leer `perfil` (analizar el CV si cambió), no proponer de nuevo lo `descartado` o archivado, insertar en `ofertas` avisos de hasta 15 días (si la fecha no se puede verificar se incluyen con `iso` null y la app los marca como "Fecha sin verificar") con `prio` por coincidencia, y nunca borrar filas (los descartados y archivados se ven en los filtros de la app).

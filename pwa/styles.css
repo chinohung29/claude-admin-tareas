@@ -147,3 +147,7 @@ dialog#arrepentimiento h2 { font-family: Georgia, 'Times New Roman', serif; font
 dialog#arrepentimiento p { font-size: 14px; line-height: 1.55; }
 dialog#arrepentimiento textarea { width: 100%; font-family: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); margin-top: 4px; }
 #arrConfirmar { background: var(--descartado-bg) !important; color: var(--descartado) !important; border-color: var(--descartado) !important; }
+
+.agente-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: -14px 0 28px; }
+.agente-barra button { font-family: inherit; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: var(--radius); border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; }
+.agente-barra button:disabled { opacity: .6; cursor: wait; }

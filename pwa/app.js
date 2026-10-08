@@ -517,9 +517,9 @@ const TUTORIAL = [
   { t: 'Filtros y uso diario', h: `<p>Arriba de la lista están los filtros: <b>Activas</b> (las que tenés para trabajar hoy), <b>Archivadas</b>, <b>Descartadas</b> y <b>Todas</b>. Los números te dicen cuántas hay en cada uno. Las pendientes de más de 15 días se archivan solas.</p>
     <p>También podés <b>agregar a mano</b> una oferta que encontraste vos, con el formulario al final de cada bloque.</p>
     <p>Sin conexión la app sigue funcionando: tus cambios se guardan en el dispositivo y se sincronizan al volver.</p>` },
-  { t: 'Tu rutina', h: `<p><b>Cada mañana</b> el agente carga las ofertas nuevas de los últimos 15 días.</p>
-    <p><b>De 10 a 12</b>, de lunes a viernes, tenés el bloque en tu calendario con aviso por mail y por notificación para postularte.</p>
-    <p>Un buen ritmo: abrí la app, clasificá lo nuevo (postular, descartar o archivar) y dejá la lista de «Activas» corta.</p>` }
+  { t: 'Buscá ofertas', h: `<p>Tocá <b>Buscar ofertas ahora</b>: el agente busca en portales de empleo de Argentina, según tu perfil, y deja en cada bloque las ofertas de los últimos 15 días con el enlace para postularte.</p>
+    <p>Se puede buscar una vez cada pocas horas. Lo que descartes o archives no vuelve a aparecer.</p>
+    <p>Un buen ritmo: buscá, clasificá lo nuevo (postular, descartar o archivar) y dejá la lista de «Activas» corta. La decisión de postularte es siempre tuya.</p>` }
 ];
 let tutPaso = 0;
 function abrirTutorial(n) {
@@ -650,4 +650,24 @@ document.getElementById('arrConfirmar').addEventListener('click', async () => {
   document.getElementById('arrAccion').hidden = true; btn.hidden = true;
   arrMsg('Listo: revocaste tu contratación. Tu código de identificación es ' + data.numero_reclamo + '. Guardalo. El plan Pro se cortó y vamos a gestionar la devolución de lo pagado por el mismo medio de pago.');
   cargarCuenta();
+});
+
+
+// ---- Buscar ofertas ahora (agente) ----
+const NOMBRE_BLOQUE = { admin: 'Administrativo', ia: 'IA y automatización', odoo: 'Odoo' };
+function horaLocal(iso) { return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }); }
+document.getElementById('buscarAhora').addEventListener('click', async () => {
+  const btn = document.getElementById('buscarAhora'), msg = document.getElementById('buscarMsg');
+  btn.disabled = true; msg.textContent = 'Buscando en portales de Argentina… puede tardar unos segundos.';
+  const { data, error } = await sb.functions.invoke('agente-ofertas', { method: 'POST', body: {} });
+  btn.disabled = false;
+  if (error) { msg.textContent = await msgError(error); return; }
+  if (data.omitido === 'reciente') { msg.textContent = 'Ya buscaste hace poco. Podés volver a buscar a partir de las ' + horaLocal(data.proxima_busqueda) + '.'; return; }
+  if (data.omitido === 'cupo_mensual') { msg.textContent = 'Se alcanzó el límite de búsquedas de este mes. Probá de nuevo más adelante.'; return; }
+  const bloques = Object.entries(data.bloques || {});
+  const fallaron = bloques.filter(([, b]) => b.error).length;
+  const detalle = bloques.map(([k, b]) => (NOMBRE_BLOQUE[k] || k) + ': ' + b.nuevas).join(' · ');
+  msg.textContent = (data.nuevas ? 'Listo: ' + data.nuevas + ' ofertas nuevas (' + detalle + ').' : 'No hay ofertas nuevas por ahora.') +
+    (fallaron ? ' ' + fallaron + ' búsqueda(s) fallaron; probá de nuevo más tarde.' : '');
+  await cargar();
 });

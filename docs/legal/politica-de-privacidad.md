@@ -38,6 +38,7 @@ Usamos proveedores que tratan datos por nuestra cuenta, solo para prestar el ser
 | Supabase | Base de datos y autenticación | Brasil (São Paulo) |
 | Netlify | Hosting de la aplicación | Estados Unidos |
 | Anthropic | Análisis de tu CV con IA | Estados Unidos |
+| SerpApi | Búsqueda de ofertas de empleo. Solo recibe la palabra clave de la búsqueda (por ejemplo "analista de cobranzas"), nunca tu CV ni tus datos | Estados Unidos |
 | Mercado Pago | Cobro de la suscripción | Argentina |
 | [PROVEEDOR DE CORREO] | Envío de mails de la cuenta | [UBICACIÓN] |
 

@@ -17,19 +17,27 @@ Estado: entorno de pruebas (proyecto Supabase `busqueda-laboral`, plan gratuito)
 - **Cobro y derechos del consumidor** (funciones desplegadas en el proyecto de pruebas, sin probar con Mercado Pago real): `mp-crear-suscripcion` ($10.000 por mes, `PRECIO_PRO_ARS` para cambiar el precio), `mp-webhook` (revalida cada aviso contra la API y aplica 10 días de gracia si falla un cobro), `mp-cancelar-suscripcion` (baja por la misma app; el plan sigue hasta el fin del período pagado), `mp-arrepentimiento` (botón de arrepentimiento: dentro de los 10 días corridos, cancela y corta el plan en el momento, entrega al instante un código `ARR-…` y registra la solicitud para devolver el pago a mano). La tarea diaria `bajar_planes_vencidos` (06:00 UTC) pasa a `cancelado` los planes vencidos. La lógica de decisión del webhook tiene pruebas (`supabase/functions/mp-webhook/decision.test.mts`).
 - Sección «Mi plan» en la app y botón de arrepentimiento destacado en la pantalla de inicio y en la cuenta.
 
-## Fuentes de ofertas: capas
-**Capa 1 (hecha): enlaces a las búsquedas.** Gratis, sin claves, sin riesgo de términos de uso.
+## Fuentes de ofertas
+**Capa 1 (hecha): enlaces a las búsquedas** en Computrabajo, Indeed, Bumeran y LinkedIn. Gratis, sin claves.
 
-**Capa 2 (pendiente): ofertas individuales por API.** No encontré APIs públicas de búsqueda de empleo de Computrabajo, Bumeran, Indeed ni LinkedIn para quien busca trabajo (ver nota). Alternativas con prueba gratuita, todas **sin verificar para Argentina hasta probar con una clave**:
-| Servicio | Prueba gratis | Qué trae | Pendiente de verificar |
-|---|---|---|---|
-| JSearch (OpenWeb Ninja) | 200 consultas por mes, sin tarjeta | Ofertas de Google for Jobs, que agrega LinkedIn, Indeed, Glassdoor y otros, con enlace para postular | Que devuelva ofertas de Argentina (parámetro `country=ar`); condiciones de uso comercial |
-| SerpApi (motor Google Jobs) | 250 búsquedas por mes (confirmar en su sitio) | Resultados de Google for Jobs | Argentina (`gl=ar`, `hl=es`); precio pago desde USD 25 por 1.000 búsquedas |
-| Careerjet (API v4 para publishers) | Gratis para publishers, con clave | Ofertas de su red, con locales por país | Locale `es_AR`; exige IP y user agent de un visitante real en cada llamada (sirve para "buscar ahora" desde la app, no para lotes nocturnos) |
-| Jooble | Clave gratuita a pedido | Ofertas agregadas, edición Argentina según fuentes de terceros | Límites y términos comerciales; descripciones truncadas |
-| Get on Board | API pública sin autenticación | Empleos tech de Latinoamérica | Cuántos avisos de Argentina hay |
-Recomendación: probar **JSearch** primero (200 consultas gratis alcanzan para validar con pocos usuarios). Para probarlo: crear la cuenta en OpenWeb Ninja, y cargar la clave como secreto en Supabase (no en el chat ni en el código). Después se arma el agente con esa fuente y se mide cuántas ofertas reales de Argentina devuelve.
-Nota: Google for Jobs y los agregadores se alimentan de los portales; revisar sus términos para uso comercial. Indeed y LinkedIn restringen sus APIs a empleadores y socios.
+**Capa 2 (hecha, falta cargar la clave y validar): agente de ofertas con SerpApi** (motor Google Jobs). Función `agente-ofertas`, botón «Buscar ofertas ahora» en la app.
+- Busca solo en Argentina (`location=Argentina`, `gl=ar`, `hl=es`), una palabra clave por bloque por corrida (rota entre las del análisis del CV o las de ejemplo). A SerpApi solo viaja la palabra clave, nunca el CV.
+- Filtra: solo Argentina o remotas, hasta 15 días de antigüedad (el filtro de fecha de Google por parámetro está deprecado; se filtra por el «hace X días» de cada resultado; sin fecha interpretable se guarda sin fecha y la app lo marca «Fecha sin verificar»), con enlace http/https al aviso (prefiere Computrabajo, Bumeran, LinkedIn, Indeed), sin repetir y sin volver a proponer lo descartado o archivado.
+- Ordena por coincidencia con el CV (`prio`). **Hoy el puntaje es por reglas** (palabra clave en título y descripción, términos del CV); cuando haya clave de Claude lo reemplaza un análisis de IA.
+- Límites: una corrida por usuario cada 6 horas (`AGENTE_HORAS_ENTRE_BUSQUEDAS`) y tope mensual de 240 búsquedas (`SERPAPI_LIMITE_MENSUAL`, plan gratuito: 250). Cada corrida usa 3 búsquedas (una por bloque).
+- Costo: con búsqueda diaria de lunes a viernes son unas 66 búsquedas por usuario por mes; en el plan pago de SerpApi (USD 25 por 1.000 búsquedas, según su página) serían unos USD 1,65 por usuario. En el plan gratuito alcanza para unos 3 usuarios de prueba. Si dos usuarios comparten palabras clave se podrían reutilizar búsquedas (no implementado).
+- La forma exacta de los resultados de SerpApi no se pudo confirmar desde acá (su sitio no es accesible desde el entorno de desarrollo): se leen de forma defensiva y hay un modo diagnóstico para validarlos con la clave real.
+- Pruebas sin red ni clave: `supabase/functions/agente-ofertas/pruebas/correr.sh` (lógica pura y orquestación con base y SerpApi simulados).
+
+**Para activarlo (tuyo):**
+1. En SerpApi, copiar la API key (Dashboard → Your Account). No la pegues en el chat.
+2. En Supabase → Edge Functions → Secrets: crear `SERPAPI_KEY` con esa clave.
+3. En la app, con tu cuenta, tocar «Buscar ofertas ahora». Gasta 3 búsquedas.
+4. Avisarme: leo `busquedas` y `ofertas` en la base y ajusto lo que haga falta (formato de fechas, enlaces, ubicaciones). Para ver la forma cruda de la respuesta, invoco la función con `diagnostico: true`.
+
+**Tarea diaria automática (después de validar):** generar un secreto largo al azar, cargarlo como `AGENTE_CRON_SECRET` en Edge Functions y también en el Vault de Supabase, y programar con `pg_cron` + `pg_net` una llamada diaria a la función con el encabezado `x-cron-secret`. La función ya admite ese modo: procesa a todos los usuarios que tienen CV.
+
+**Otras opciones descartadas por ahora:** JSearch (OpenWeb Ninja, 200 consultas gratis por mes), Careerjet, Jooble y Get on Board. Indeed y LinkedIn restringen sus APIs a empleadores y socios; no hay APIs públicas de búsqueda para Computrabajo ni Bumeran. Google for Jobs se alimenta de los portales: revisar los términos de SerpApi para uso comercial.
 
 ## Cobro con Mercado Pago (guía para conectar la cuenta de prueba)
 Se replica el esquema de LMH Flow: `mp-crear-suscripcion` (crea el `preapproval` de $10.000 por mes), `mp-webhook` (revalida cada aviso contra la API y aplica 10 días de gracia si falla un cobro), `mp-cancelar-suscripcion` y `mp-arrepentimiento`.
@@ -52,7 +60,7 @@ Qué probar con la cuenta compradora: (a) suscribirse desde «Mi plan» y volver
 7. **Legal antes de abrir:** ver `docs/legal/analisis-normativo.md` (inscripción de la base ante la AAIP, contratos con proveedores, revisión de los textos, situación fiscal).
 
 ## Pendiente, en este orden
-1. Probar la capa 2 con una clave de prueba de JSearch y armar el agente (`agente-diario`): analiza el CV una vez, busca, puntúa por perfil, guarda en `ofertas` y avisa. Sin clave de Claude usa un modo de pruebas por palabras clave.
+1. Cargar `SERPAPI_KEY`, validar el agente con una corrida real y ajustar. Después, la tarea diaria automática y el análisis del CV con IA (cuando haya clave de Claude).
 2. Probar el cobro con Mercado Pago de prueba (guía de arriba). Definir qué limita el plan gratuito: hoy el plan se registra pero todavía no restringe funciones.
 3. Revisión legal por un abogado e inscripción de la base en la AAIP.
 4. Producción.
