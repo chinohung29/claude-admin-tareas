@@ -35,6 +35,9 @@ Deno.serve(async (req: Request) => {
 
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN')
     if (!accessToken) return json({ error: 'Mercado Pago no está configurado (falta el secret MP_ACCESS_TOKEN).' }, 500)
+    // Solo para pruebas: con credenciales de prueba, Mercado Pago exige el email del comprador de prueba. Con el secreto
+    // MP_PAYER_EMAIL_PRUEBA cargado se usa ese email; en producción el secreto no existe y se usa el de la cuenta.
+    const emailPagador = Deno.env.get('MP_PAYER_EMAIL_PRUEBA') || user.email
     const appUrl = Deno.env.get('APP_URL') ?? 'https://busqueda-laboral-lmh.netlify.app'
 
     const mpResponse = await fetch('https://api.mercadopago.com/preapproval', {
@@ -43,7 +46,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         reason: `Búsqueda laboral · Plan Pro ($${PRECIO_ARS}/mes)${conPrueba ? ` · ${DIAS_PRUEBA} días de prueba gratis` : ''}`,
         external_reference: `${user.id}:pro`,
-        payer_email: user.email,
+        payer_email: emailPagador,
         back_url: `${appUrl}/`,
         auto_recurring: {
           frequency: 1,

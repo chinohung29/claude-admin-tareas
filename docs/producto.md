@@ -49,6 +49,8 @@ Lo que necesito que hagas vos (verificá cada paso en la documentación de Merca
 3. Copiar el **Access Token de prueba** y cargarlo como secreto `MP_ACCESS_TOKEN` en Supabase (Edge Functions → Secrets). También `APP_URL` (`https://busqueda-laboral-lmh.netlify.app`).
 4. Cuando las funciones estén desplegadas, cargar en la aplicación de Mercado Pago la **URL del webhook** (la de `mp-webhook`) y activar los eventos de suscripciones y pagos.
 5. Probar una suscripción con la cuenta compradora de prueba y tarjetas de prueba.
+Secreto opcional solo para pruebas: `MP_PAYER_EMAIL_PRUEBA` (email del comprador de prueba; con credenciales de prueba Mercado Pago exige que el pagador sea ese usuario). Borrarlo antes de producción.
+
 Las funciones ya están desplegadas; faltan los secretos y probarlas con la cuenta de prueba. URL del webhook para cargar en Mercado Pago: `https://bclqrmeeqssvqovkvvkz.supabase.co/functions/v1/mp-webhook`.
 Qué probar con la cuenta compradora: (a) suscribirse desde «Mi plan» y volver a la app; (b) cancelar la suscripción; (c) usar el botón de arrepentimiento dentro de los 10 días y comprobar el código, que el plan se corta y que aparece la solicitud en la tabla `solicitudes_arrepentimiento`; (d) un cobro fallido, para ver la gracia de 10 días.
 
