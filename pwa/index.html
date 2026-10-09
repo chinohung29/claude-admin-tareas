@@ -71,6 +71,15 @@
     <h2>Mi perfil (CV)</h2>
     <p class="desc">Cargá tu CV: el agente lo lee para detectar tus fortalezas y oportunidades y adaptar las búsquedas de cada día. El archivo se lee en tu dispositivo y solo se guarda el texto.</p>
     <div id="perfilInfo"></div>
+    <div id="eleccion" class="eleccion" hidden>
+      <h3>Mis búsquedas</h3>
+      <p class="meta">Elegí hasta 3 rubros donde buscar ofertas. Las opciones sugeridas salen de tu CV, y también podés elegir otros rubros.</p>
+      <label>Búsqueda 1 <select id="bus1"></select></label><p class="meta" id="busInfo1"></p>
+      <label>Búsqueda 2 <select id="bus2"></select></label><p class="meta" id="busInfo2"></p>
+      <label>Búsqueda 3 <select id="bus3"></select></label><p class="meta" id="busInfo3"></p>
+      <div class="bar"><button type="button" id="busGuardar">Guardar y buscar ofertas</button><button type="button" id="busAuto">Volver a la selección automática</button></div>
+      <p class="aviso" id="busMsg" hidden></p>
+    </div>
     <form class="add" id="cvForm">
       <input type="file" id="cvFile" accept=".pdf,.docx,.txt,.md" aria-label="Archivo del CV">
       <button type="button" id="cvPegar">Pegar texto</button>

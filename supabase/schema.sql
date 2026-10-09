@@ -93,7 +93,9 @@ create table public.perfil (
   -- Lo escribe el agente: {resumen, seniority, fortalezas[], oportunidades[], palabras_clave:{admin[],ia[],odoo[]}}
   analisis jsonb,
   analisis_actualizado timestamptz,
-  analisis_de_cv timestamptz
+  analisis_de_cv timestamptz,
+  -- Hasta 3 rubros que la persona eligió a mano (ids del catálogo del análisis); null = selección automática según el CV.
+  busquedas_elegidas jsonb
 );
 
 alter table public.profiles enable row level security;
@@ -122,8 +124,8 @@ grant select on public.ofertas to authenticated;
 grant select, insert, update, delete on public.estados, public.manuales to authenticated;
 -- La app solo escribe el CV; el análisis lo escribe el agente (service role).
 grant select on public.perfil to authenticated;
-grant insert (user_id, cv_nombre, cv_texto, cv_actualizado) on public.perfil to authenticated;
-grant update (user_id, cv_nombre, cv_texto, cv_actualizado) on public.perfil to authenticated;
+grant insert (user_id, cv_nombre, cv_texto, cv_actualizado, busquedas_elegidas) on public.perfil to authenticated;
+grant update (user_id, cv_nombre, cv_texto, cv_actualizado, busquedas_elegidas) on public.perfil to authenticated;
 
 -- Registro de consentimientos: solo se agregan filas (sin update ni delete para el usuario).
 create table public.consentimientos (

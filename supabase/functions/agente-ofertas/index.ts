@@ -51,17 +51,20 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
   const db = admin()
   const ahora = new Date()
 
-  const { data: perfil } = await db.from('perfil').select('cv_texto, cv_actualizado, analisis, analisis_de_cv, analisis_actualizado').eq('user_id', userId).maybeSingle()
+  const { data: perfil } = await db.from('perfil').select('cv_texto, cv_actualizado, analisis, analisis_de_cv, analisis_actualizado, busquedas_elegidas').eq('user_id', userId).maybeSingle()
 
-  // Análisis del CV: se rehace si no existe o si el CV es más nuevo que el análisis.
+  // Análisis del CV.
   let analisis: Record<string, any> | null = perfil?.analisis ?? null
   let analizado = false
   let analisisEl: string | null = perfil?.analisis_actualizado ?? null
-  if (perfil?.cv_texto && (!analisis || !perfil.analisis_de_cv || new Date(perfil.analisis_de_cv) < new Date(perfil.cv_actualizado ?? 0))) {
+  // Se rehace si no existe, si el CV es más nuevo, si es de una versión sin catálogo de rubros o si cambió la elección manual.
+  const elegidas = Array.isArray(perfil?.busquedas_elegidas) && perfil.busquedas_elegidas.length ? perfil.busquedas_elegidas : null
+  const cambioEleccion = JSON.stringify(elegidas) !== JSON.stringify(analisis?.elegidas ?? null)
+  if (perfil?.cv_texto && (!analisis || !analisis.catalogo || cambioEleccion || !perfil.analisis_de_cv || new Date(perfil.analisis_de_cv) < new Date(perfil.cv_actualizado ?? 0))) {
     const antes: Record<string, string> = perfil.analisis?.bloques
       ? Object.fromEntries(perfil.analisis.bloques.map((b: any) => [b.id, b.nombre]))
       : NOMBRES_ORIGINALES // sin análisis previo, las ofertas guardadas salieron de las búsquedas de ejemplo
-    analisis = analizarCV(perfil.cv_texto)
+    analisis = analizarCV(perfil.cv_texto, elegidas)
     // Un bloque que cambió de rubro (o dejó de buscarse) no puede conservar avisos del rubro anterior: se archivan,
     // salvo los que la persona ya marcó como postulados.
     const despues: Record<string, string> = Object.fromEntries(analisis.bloques.map((b) => [b.id, b.nombre]))
@@ -90,7 +93,8 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
     const perfilNuevo = (!!analisisEl && new Date(analisisEl).getTime() > ultima) || (!!perfil?.cv_actualizado && new Date(perfil.cv_actualizado).getTime() > ultima)
     const cvNuevo = perfilNuevo && ahora.getTime() - ultima >= MINUTOS_CV_NUEVO * 60_000
     if (!cvNuevo) {
-      const proxima = new Date(ultima + HORAS_ENTRE_BUSQUEDAS * 3_600_000).toISOString()
+      // Con perfil nuevo (CV o elección distinta) se puede volver a buscar a los 30 minutos; si no, a las horas de espera.
+      const proxima = new Date(ultima + (perfilNuevo ? MINUTOS_CV_NUEVO * 60_000 : HORAS_ENTRE_BUSQUEDAS * 3_600_000)).toISOString()
       return { userId, omitido: 'reciente', proxima_busqueda: proxima, analizado }
     }
   }

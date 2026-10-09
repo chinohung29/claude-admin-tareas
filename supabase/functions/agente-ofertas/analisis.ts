@@ -5,6 +5,7 @@ import { BLOQUES, sinTildes, type Bloque } from './logica.ts'
 
 interface Rol { termino: string; pat: RegExp }
 interface Grupo {
+  id: string
   nombre: string
   /** Si el grupo es una de las tres familias originales conserva su bloque; si no, ocupa un bloque libre. */
   bloque?: Bloque
@@ -14,7 +15,7 @@ interface Grupo {
 }
 
 const GRUPOS: Grupo[] = [
-  { nombre: 'Administración y finanzas', bloque: 'admin', pedidas: ['Excel avanzado', 'Odoo', 'ARCA / AFIP', 'Inglés', 'Power BI'], roles: [
+  { id: 'admin', nombre: 'Administración y finanzas', bloque: 'admin', pedidas: ['Excel avanzado', 'Odoo', 'ARCA / AFIP', 'Inglés', 'Power BI'], roles: [
     { termino: 'analista administrativo', pat: /administrativ/ },
     { termino: 'analista contable', pat: /contab|contador/ },
     { termino: 'analista de cobranzas', pat: /cobranza/ },
@@ -27,7 +28,7 @@ const GRUPOS: Grupo[] = [
     { termino: 'analista de cuentas corrientes', pat: /cuentas? corrientes?|conciliacion de cuentas/ },
     { termino: 'analista de operaciones comerciales', pat: /operaciones comerciales|ordenes de compra|gestion documental/ },
   ] },
-  { nombre: 'Tecnología, datos y automatización', bloque: 'ia', pedidas: ['Python', 'SQL', 'Power BI', 'Inglés', 'Gestión de proyectos'], roles: [
+  { id: 'ia', nombre: 'Tecnología, datos y automatización', bloque: 'ia', pedidas: ['Python', 'SQL', 'Power BI', 'Inglés', 'Gestión de proyectos'], roles: [
     { termino: 'desarrollador web', pat: /desarrollador|programador|developer|front.?end|back.?end|full.?stack/ },
     { termino: 'automatización de procesos', pat: /automatiza|\brpa\b|\bn8n\b|zapier|make\.com/ },
     { termino: 'desarrollador IA', pat: /inteligencia artificial|machine learning|\bllm\b|chatgpt|\bia\b/ },
@@ -35,42 +36,42 @@ const GRUPOS: Grupo[] = [
     { termino: 'analista de sistemas', pat: /analista de sistemas|soporte tecnico|help ?desk|sistemas/ },
     { termino: 'project manager', pat: /project manager|gestion de proyectos|scrum|lider de proyecto/ },
   ] },
-  { nombre: 'Odoo y ERP', bloque: 'odoo', pedidas: ['Odoo', 'SQL', 'Inglés', 'Gestión de proyectos', 'ARCA / AFIP'], roles: [
+  { id: 'odoo', nombre: 'Odoo y ERP', bloque: 'odoo', pedidas: ['Odoo', 'SQL', 'Inglés', 'Gestión de proyectos', 'ARCA / AFIP'], roles: [
     { termino: 'analista funcional odoo', pat: /odoo/ },
     { termino: 'consultor ERP', pat: /\berp\b|\bsap\b|netsuite|bejerman|\btango\b/ },
     { termino: 'analista funcional', pat: /analista funcional|consultor funcional/ },
   ] },
-  { nombre: 'eCommerce', pedidas: ['Excel avanzado', 'Inglés', 'Power BI'], roles: [
+  { id: 'ecommerce', nombre: 'eCommerce', pedidas: ['Excel avanzado', 'Inglés', 'Power BI'], roles: [
     { termino: 'analista de ecommerce', pat: /e-?commerce|comercio electronico/ },
     { termino: 'ecommerce operations', pat: /e-?commerce operations|operaciones de e-?commerce/ },
     { termino: 'ecommerce specialist', pat: /e-?commerce (data )?specialist|especialista en e-?commerce/ },
   ] },
-  { nombre: 'Ventas y comercial', pedidas: ['Inglés', 'Excel avanzado', 'Atención al cliente'], roles: [
+  { id: 'ventas', nombre: 'Ventas y comercial', pedidas: ['Inglés', 'Excel avanzado', 'Atención al cliente'], roles: [
     { termino: 'ejecutivo de ventas', pat: /ventas|vendedor|asesor comercial|ejecutivo comercial/ },
     { termino: 'ejecutivo de cuentas', pat: /ejecutivo de cuentas|account manager/ },
   ] },
-  { nombre: 'Atención al cliente', pedidas: ['Inglés', 'Excel avanzado'], roles: [
+  { id: 'atencion', nombre: 'Atención al cliente', pedidas: ['Inglés', 'Excel avanzado'], roles: [
     { termino: 'atención al cliente', pat: /atencion al cliente|call center|customer service|soporte al cliente/ },
   ] },
-  { nombre: 'Marketing y comunicación', pedidas: ['Inglés', 'Power BI'], roles: [
+  { id: 'marketing', nombre: 'Marketing y comunicación', pedidas: ['Inglés', 'Power BI'], roles: [
     { termino: 'analista de marketing', pat: /marketing/ },
     { termino: 'community manager', pat: /community manager|redes sociales/ },
   ] },
-  { nombre: 'Recursos humanos', pedidas: ['Excel avanzado', 'Inglés'], roles: [
+  { id: 'rrhh', nombre: 'Recursos humanos', pedidas: ['Excel avanzado', 'Inglés'], roles: [
     { termino: 'analista de recursos humanos', pat: /recursos humanos|reclutamiento|seleccion de personal/ },
   ] },
-  { nombre: 'Logística y operaciones', pedidas: ['Excel avanzado', 'Inglés', 'SAP'], roles: [
+  { id: 'logistica', nombre: 'Logística y operaciones', pedidas: ['Excel avanzado', 'Inglés', 'SAP'], roles: [
     { termino: 'analista de logística', pat: /logistic|deposito|supply chain|stock/ },
   ] },
-  { nombre: 'Salud', pedidas: ['Inglés'], roles: [
+  { id: 'salud', nombre: 'Salud', pedidas: ['Inglés'], roles: [
     { termino: 'enfermero', pat: /enfermer/ },
     { termino: 'kinesiólogo', pat: /kinesi/ },
     { termino: 'psicólogo', pat: /psicolog/ },
     { termino: 'nutricionista', pat: /nutricion/ },
   ] },
-  { nombre: 'Docencia', pedidas: ['Inglés'], roles: [{ termino: 'docente', pat: /docente|profesor|maestr[oa] (de grado|jardinera|de nivel)/ }] },
-  { nombre: 'Legales', pedidas: ['Inglés'], roles: [{ termino: 'abogado', pat: /abogad|asuntos legales/ }] },
-  { nombre: 'Ingeniería', pedidas: ['Inglés', 'Gestión de proyectos'], roles: [{ termino: 'ingeniero', pat: /ingenier/ }] },
+  { id: 'docencia', nombre: 'Docencia', pedidas: ['Inglés'], roles: [{ termino: 'docente', pat: /docente|profesor|maestr[oa] (de grado|jardinera|de nivel)/ }] },
+  { id: 'legales', nombre: 'Legales', pedidas: ['Inglés'], roles: [{ termino: 'abogado', pat: /abogad|asuntos legales/ }] },
+  { id: 'ingenieria', nombre: 'Ingeniería', pedidas: ['Inglés', 'Gestión de proyectos'], roles: [{ termino: 'ingeniero', pat: /ingenier/ }] },
 ]
 
 const HABILIDADES: { nombre: string; pat: RegExp }[] = [
@@ -98,7 +99,15 @@ export interface Analisis {
   palabras_clave: Record<Bloque, string[]>
   bloques: { id: Bloque; nombre: string }[]
   sin_coincidencias: boolean
+  /** Todos los rubros disponibles para elegir: los que detectó el CV primero, con las búsquedas de cada uno. */
+  catalogo: CatalogoItem[]
+  /** Rubros que la persona eligió a mano (hasta 3); null si usa la selección automática. */
+  elegidas: string[] | null
 }
+
+export interface CatalogoItem { id: string; nombre: string; terminos: string[]; sugerido: boolean; automatico: boolean }
+
+export const MAX_ELEGIDAS = 3
 
 export function detectarSeniority(texto: string): Analisis['seniority'] {
   const t = sinTildes(texto)
@@ -124,20 +133,34 @@ function encabezado(texto: string): string | null {
   return null
 }
 
-export function analizarCV(texto: string): Analisis {
+export function analizarCV(texto: string, elegidasEntrada?: unknown): Analisis {
   const t = sinTildes(texto)
   const inicio = t.slice(0, 600)
   const seniority = detectarSeniority(texto)
 
-  const puntuados = GRUPOS.map((g) => {
+  const evaluados = GRUPOS.map((g) => {
     const roles = g.roles.map((r) => {
       const veces = (t.match(new RegExp(r.pat.source, 'g')) ?? []).length
       return { termino: r.termino, puntaje: veces ? Math.min(veces, 6) + (r.pat.test(inicio) ? 4 : 0) : 0 }
     }).filter((r) => r.puntaje > 0).sort((a, b) => b.puntaje - a.puntaje)
     return { g, roles, puntaje: roles.reduce((s, r) => s + r.puntaje, 0) }
-  }).filter((x) => x.puntaje >= 3).sort((a, b) => b.puntaje - a.puntaje)
-    .filter((x, _i, todos) => x.puntaje >= todos[0].puntaje * 0.3) // los rubros secundarios muy flojos no se buscan
+  })
+
+  // Selección automática: los rubros que más pesan en el CV (los secundarios muy flojos no se buscan).
+  const automaticos = evaluados.filter((x) => x.puntaje >= 3).sort((a, b) => b.puntaje - a.puntaje)
+    .filter((x, _i, todos) => x.puntaje >= todos[0].puntaje * 0.3)
     .slice(0, BLOQUES.length)
+
+  // Selección manual: hasta 3 rubros del catálogo; manda sobre la automática.
+  const ids = Array.isArray(elegidasEntrada) ? [...new Set(elegidasEntrada.map(String))] : []
+  const manual = ids.map((id) => evaluados.find((x) => x.g.id === id)).filter((x): x is (typeof evaluados)[number] => !!x).slice(0, MAX_ELEGIDAS)
+  const puntuados = manual.length ? manual : automaticos
+
+  const terminosDe = (x: (typeof evaluados)[number]) =>
+    (x.roles.length ? x.roles.map((r) => r.termino) : x.g.roles.map((r) => r.termino)).slice(0, 4)
+  const catalogo: CatalogoItem[] = [...evaluados].sort((a, b) => b.puntaje - a.puntaje).map((x) => ({
+    id: x.g.id, nombre: x.g.nombre, terminos: terminosDe(x), sugerido: x.puntaje >= 3, automatico: automaticos.includes(x),
+  }))
 
   // Cada grupo conserva su bloque si es una de las tres familias; el resto ocupa los bloques que queden libres.
   const ocupados = new Set<Bloque>(puntuados.map((x) => x.g.bloque).filter((b): b is Bloque => !!b))
@@ -146,7 +169,7 @@ export function analizarCV(texto: string): Analisis {
   const bloques: Analisis['bloques'] = []
   for (const x of puntuados) {
     const id = x.g.bloque ?? libres.shift()!
-    palabras[id] = x.roles.slice(0, 4).map((r) => r.termino)
+    palabras[id] = terminosDe(x)
     bloques.push({ id, nombre: x.g.nombre })
   }
 
@@ -166,5 +189,5 @@ export function analizarCV(texto: string): Analisis {
     ? `Perfil principal: ${principales[0]}${principales.length > 1 ? '. También encaja en: ' + principales.slice(1).join(', ') : ''}.`
     : 'No se reconoció un puesto claro en el CV; se busca según su encabezado.'
 
-  return { resumen, seniority, fortalezas: detectadas.slice(0, 8), oportunidades, palabras_clave: palabras, bloques, sin_coincidencias: sinCoincidencias }
+  return { resumen, seniority, fortalezas: detectadas.slice(0, 8), oportunidades, palabras_clave: palabras, bloques, sin_coincidencias: sinCoincidencias, catalogo, elegidas: manual.length ? manual.map((x) => x.g.id) : null }
 }

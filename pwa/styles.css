@@ -79,6 +79,14 @@ details.archivo.desc-box summary { color: var(--descartado); }
 #cvEditor .bar button { font-family: inherit; font-size: 12.5px; padding: 7px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
 #cvEditor .bar button#cvGuardar { background: var(--ink); color: var(--paper); border-color: var(--ink-soft); }
 form#cvForm button { background: var(--card); color: var(--ink); border-color: var(--line); }
+#eleccion { margin-top: 16px; }
+#eleccion h3 { font-size: 13px; margin: 12px 0 4px; }
+#eleccion label { display: grid; gap: 4px; font-size: 12.5px; margin-top: 10px; }
+#eleccion select { font-family: inherit; font-size: 13px; padding: 7px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink); max-width: 100%; }
+#eleccion .bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 0; }
+#eleccion .bar button { font-family: inherit; font-size: 12.5px; padding: 7px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+#eleccion .bar button#busGuardar { background: var(--ink); color: var(--paper); border-color: var(--ink-soft); }
+#eleccion .bar button:disabled { opacity: .5; cursor: not-allowed; }
 #perfilInfo .analisis h3 { font-size: 13px; margin: 12px 0 4px; }
 #perfilInfo ul { margin: 0; padding-left: 18px; line-height: 1.5; font-size: 13px; }
 

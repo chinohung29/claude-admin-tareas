@@ -102,4 +102,20 @@ const a6 = analizarCV('ANALISTA ADMINISTRATIVO | OPERACIONES COMERCIALES | ECOMM
 const nombres6 = a6.bloques.map((b) => b.nombre)
 assert.equal(nombres6[0], 'Administración y finanzas'); assert.ok(nombres6.includes('eCommerce')); assert.ok(!nombres6.includes('Logística y operaciones'))
 console.log('ok CV administrativo/eCommerce ->', nombres6, a6.palabras_clave)
+// Elección manual de rubros
+const cvAdm = 'ANALISTA ADMINISTRATIVO | OPERACIONES COMERCIALES | ECOMMERCE OPERATIONS\nFacturación, cobranzas, órdenes de compra, conciliación de cuentas. eCommerce Data Specialist. Coordinación con Logística y Comercial.'
+const auto = analizarCV(cvAdm)
+assert.equal(auto.elegidas, null)
+assert.ok(auto.catalogo.length >= 10 && auto.catalogo[0].id === 'admin' && auto.catalogo[0].sugerido && auto.catalogo[0].automatico)
+assert.ok(auto.catalogo.find((c) => c.id === 'ecommerce')!.automatico)
+const man = analizarCV(cvAdm, ['logistica', 'ecommerce', 'inexistente', 'logistica', 'salud', 'docencia'])
+assert.deepEqual(man.elegidas, ['logistica', 'ecommerce', 'salud']) // sin repetidos ni desconocidos, máximo 3
+assert.deepEqual(man.bloques.map((b) => b.nombre).sort(), ['Salud', 'eCommerce', 'Logística y operaciones'].sort())
+assert.ok(Object.values(man.palabras_clave).flat().includes('analista de logística'))
+assert.ok(man.palabras_clave.admin.length === 0 || man.bloques.some((b) => b.id === 'admin')) // si admin no se eligió, no se busca
+assert.ok(man.catalogo.find((c) => c.id === 'admin')!.automatico) // el catálogo sigue mostrando la selección automática
+const man2 = analizarCV(cvAdm, ['salud']) // un rubro sin nada en el CV usa sus búsquedas por defecto
+assert.deepEqual(man2.palabras_clave.admin.concat(man2.palabras_clave.ia, man2.palabras_clave.odoo), ['enfermero', 'kinesiólogo', 'psicólogo', 'nutricionista'])
+assert.equal(analizarCV(cvAdm, []).elegidas, null); assert.equal(analizarCV(cvAdm, ['x']).elegidas, null) // nada válido = automático
+console.log('ok elección manual de rubros:', man.bloques.map((b) => b.id + '=' + b.nombre))
 console.log('TODAS LAS PRUEBAS PASARON')

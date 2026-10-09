@@ -82,6 +82,16 @@ assert.notEqual(res.omitido, 'reciente'); assert.equal(res.analizado, true)
 assert.equal(DB.tablas.perfil[0].analisis.bloques[0].nombre, 'Salud')
 assert.ok(llamadas.at(-1)!.includes('enfermero') || llamadas.some((u) => u.includes('enfermero')))
 console.log('ok CV nuevo: se vuelve a analizar y busca por el perfil nuevo →', JSON.stringify(res.nombres))
+// Elección manual: la persona elige rubros y el agente busca por ellos
+DB.tablas.busquedas.forEach((b: any) => { b.ejecutado_el = new Date(Date.now() - 3_600_000).toISOString() })
+DB.tablas.perfil[0].busquedas_elegidas = ['logistica']
+const n0 = llamadas.length
+res = await (await pedir()).json()
+assert.equal(res.analizado, true); assert.deepEqual(DB.tablas.perfil[0].analisis.elegidas, ['logistica'])
+assert.ok(DB.tablas.busquedas.some((b: any) => b.consulta === 'analista de logística' && b.bloque === 'admin')); assert.equal(llamadas.length - n0, 1) // una sola búsqueda, solo del rubro elegido
+console.log('ok elección manual: busca por el rubro elegido →', JSON.stringify(res.nombres))
+DB.tablas.perfil[0].busquedas_elegidas = null
+DB.tablas.busquedas.forEach((b: any) => { b.ejecutado_el = new Date(Date.now() - 3_600_000).toISOString() })
 // Los avisos de un bloque que cambió de rubro se archivan, salvo los postulados
 assert.equal(guardadas.find((o: any) => o.id === postulada.id).archivado, false)
 assert.ok(guardadas.filter((o: any) => o.id !== postulada.id).every((o: any) => o.archivado === true))

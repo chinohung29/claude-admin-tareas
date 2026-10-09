@@ -338,7 +338,55 @@ function renderPerfil() {
       '</div>';
   }
   box.innerHTML = html;
+  renderEleccion();
 }
+
+// ---- Mis búsquedas: hasta 3 rubros a elegir entre los sugeridos por el CV y el resto del catálogo ----
+const catalogoBus = () => (perfil && perfil.analisis && Array.isArray(perfil.analisis.catalogo)) ? perfil.analisis.catalogo : [];
+function renderEleccion() {
+  const cat = catalogoBus(), box = document.getElementById('eleccion');
+  box.hidden = !cat.length;
+  if (!cat.length) return;
+  const manual = Array.isArray(perfil.busquedas_elegidas) && perfil.busquedas_elegidas.length ? perfil.busquedas_elegidas : null;
+  const actuales = manual || cat.filter(c => c.automatico).map(c => c.id);
+  const opt = c => '<option value="' + esc(c.id) + '">' + esc(c.nombre) + '</option>';
+  const html = '<option value="">— Sin elegir —</option>' +
+    '<optgroup label="Sugeridas por tu CV">' + cat.filter(c => c.sugerido).map(opt).join('') + '</optgroup>' +
+    '<optgroup label="Otros rubros">' + cat.filter(c => !c.sugerido).map(opt).join('') + '</optgroup>';
+  [1, 2, 3].forEach(n => {
+    const sel = document.getElementById('bus' + n);
+    sel.innerHTML = html;
+    sel.value = actuales[n - 1] || '';
+    infoBus(n);
+  });
+}
+function infoBus(n) {
+  const id = document.getElementById('bus' + n).value, c = catalogoBus().find(x => x.id === id);
+  document.getElementById('busInfo' + n).textContent = c ? 'Busca: ' + c.terminos.join(', ') : '';
+}
+[1, 2, 3].forEach(n => document.getElementById('bus' + n).addEventListener('change', () => infoBus(n)));
+function busMsg(t) { const m = document.getElementById('busMsg'); m.hidden = !t; m.textContent = t || ''; }
+async function guardarEleccion(auto) {
+  const cat = catalogoBus();
+  let elegidas = auto ? [] : [1, 2, 3].map(n => document.getElementById('bus' + n).value).filter(Boolean);
+  if (new Set(elegidas).size !== elegidas.length) { busMsg('Elegiste el mismo rubro más de una vez. Cada búsqueda tiene que ser distinta.'); return; }
+  if (!auto && !elegidas.length) { busMsg('Elegí al menos un rubro, o tocá "Volver a la selección automática".'); return; }
+  // Si coincide con la selección automática, se guarda como automática: así sigue a tu CV si lo actualizás.
+  const autoIds = cat.filter(c => c.automatico).map(c => c.id);
+  if (elegidas.length === autoIds.length && elegidas.every(id => autoIds.includes(id))) elegidas = [];
+  const btns = [document.getElementById('busGuardar'), document.getElementById('busAuto')];
+  btns.forEach(b => b.disabled = true); busMsg('Guardando…');
+  const valor = elegidas.length ? elegidas : null;
+  const { error } = await sb.from('perfil').update({ busquedas_elegidas: valor }).eq('user_id', uid());
+  if (error) { btns.forEach(b => b.disabled = false); busMsg('No se pudo guardar: ' + error.message); return; }
+  perfil = { ...perfil, busquedas_elegidas: valor };
+  busMsg('Guardado. Buscando ofertas con tu elección…');
+  await buscarOfertas(false, 'eleccion');
+  btns.forEach(b => b.disabled = false);
+  busMsg(document.getElementById('buscarMsg').textContent);
+}
+document.getElementById('busGuardar').addEventListener('click', () => guardarEleccion(false));
+document.getElementById('busAuto').addEventListener('click', () => guardarEleccion(true));
 
 function cvMsg(t) {
   const m = document.getElementById('cvMsg');
@@ -520,7 +568,7 @@ const TUTORIAL = [
     <li>Revisá el texto que aparece y corregilo si hace falta. El archivo se lee en tu dispositivo: <b>no se sube</b>, solo se guarda el texto.</li>
     <li>Tocá <b>Guardar CV</b>.</li></ol>
     <p>Si tu PDF es una imagen escaneada no tiene texto que leer: usá <b>Pegar texto</b> y pegá el contenido de tu CV.</p>
-    <p>Al guardarlo, el agente lo analiza y busca ofertas acordes a tu perfil: acá vas a ver tus <b>fortalezas</b>, <b>oportunidades</b> y las búsquedas que hace. Los rubros salen de tu CV, no de una lista fija. Si cargás otro CV, se vuelve a analizar.</p>` },
+    <p>Al guardarlo, el agente lo analiza y busca ofertas acordes a tu perfil: acá vas a ver tus <b>fortalezas</b>, <b>oportunidades</b> y las búsquedas que hace. Los rubros salen de tu CV, no de una lista fija. Si cargás otro CV, se vuelve a analizar. En <b>Mis búsquedas</b> podés elegir hasta 3 rubros entre los que sugiere tu CV y otros, y el agente busca por esos.</p>` },
   { t: 'Clasificá cada oferta', h: `<p>Cada tarjeta muestra puesto, empresa, modalidad (remoto, híbrido o presencial), sueldo (<i>A convenir</i> si no figura) y la fecha. Tocá <b>abrir aviso</b> para postularte en el portal.</p>
     <ul><li><b>Pendiente:</b> todavía no decidiste.</li>
     <li><b>Postulado:</b> ya te postulaste. Pasa a «Seguimiento de postulados».</li>
@@ -676,14 +724,15 @@ document.getElementById('arrConfirmar').addEventListener('click', async () => {
 // ---- Buscar ofertas ahora (agente) ----
 function horaLocal(iso) { return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }); }
 document.getElementById('buscarAhora').addEventListener('click', () => buscarOfertas(false));
-async function buscarOfertas(trasCV) {
+async function buscarOfertas(trasCV, motivo) {
   const btn = document.getElementById('buscarAhora'), msg = document.getElementById('buscarMsg');
   btn.disabled = true; msg.textContent = 'Buscando en portales de Argentina… puede tardar unos segundos.';
   const { data, error } = await sb.functions.invoke('agente-ofertas', { method: 'POST', body: {} });
   btn.disabled = false;
   if (error) { msg.textContent = await msgError(error); return; }
   if (data.omitido === 'reciente') {
-    msg.textContent = (trasCV ? 'Tu CV se guardó, pero ya buscaste hace muy poco. ' : 'Ya buscaste hace poco. ') + 'Podés volver a buscar a partir de las ' + horaLocal(data.proxima_busqueda) + '.';
+    await cargarPerfil(); // el análisis con tu elección ya está hecho aunque todavía no se pueda buscar
+    msg.textContent = (motivo === 'eleccion' ? 'Guardamos tu elección, pero ya buscaste hace muy poco. ' : trasCV ? 'Tu CV se guardó, pero ya buscaste hace muy poco. ' : 'Ya buscaste hace poco. ') + 'Podés volver a buscar a partir de las ' + horaLocal(data.proxima_busqueda) + '.';
     return;
   }
   if (data.omitido === 'cupo_mensual') { msg.textContent = 'Se alcanzó el límite de búsquedas de este mes. Probá de nuevo más adelante.'; return; }
