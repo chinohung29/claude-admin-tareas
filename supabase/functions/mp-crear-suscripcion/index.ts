@@ -64,6 +64,13 @@ Deno.serve(async (req: Request) => {
 
     if (!mpResponse.ok) {
       console.error('Mercado Pago rechazó la solicitud:', mpResponse.status, mpTexto)
+      // Error típico en pruebas: pagador real con credenciales de prueba (o al revés). Se explica qué revisar, sin mostrar valores.
+      if (/real or test users/i.test(String(mpData?.message ?? ''))) {
+        const detalle = Deno.env.get('MP_PAYER_EMAIL_PRUEBA')
+          ? 'Se usó el email de prueba cargado: revisá que sea el del comprador de prueba y que el Access Token sea el del vendedor de prueba.'
+          : 'No hay email de prueba cargado (secreto MP_PAYER_EMAIL_PRUEBA) y se usó el de tu cuenta.'
+        return json({ error: 'Mercado Pago exige que el comprador y el vendedor sean los dos de prueba o los dos reales. ' + detalle }, 502)
+      }
       return json({ error: mpData?.message ?? 'Error al crear la suscripción en Mercado Pago.' }, 502)
     }
     return json({ init_point: mpData.init_point, monto: PRECIO_ARS, prueba_dias: conPrueba ? DIAS_PRUEBA : 0 })
