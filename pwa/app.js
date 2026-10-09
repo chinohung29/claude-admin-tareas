@@ -173,6 +173,7 @@ function palabrasClave(bloque) {
 function nombreBloque(id) {
   const al = perfil && perfil.analisis;
   const x = al && Array.isArray(al.bloques) && al.bloques.find(b => b.id === id);
+  if (al && !x && hayAnalisis()) return 'Búsquedas anteriores'; // rubro que el CV actual ya no busca: solo quedan avisos viejos
   return x ? x.nombre : (BLOQUES.find(b => b.id === id) || {}).nombre || id;
 }
 const hayAnalisis = () => !!(perfil && perfil.analisis && perfil.analisis.palabras_clave);
@@ -231,7 +232,7 @@ function render() {
   cont.innerHTML = '';
   const vacio = { activas: 'No hay ofertas activas en este bloque.', archivadas: 'No hay archivadas.', descartadas: 'No hay descartadas.', todas: 'No hay ofertas.' };
   // Con el CV analizado, solo se muestran los rubros a los que apunta el perfil (y los que ya tengan avisos).
-  BLOQUES.filter(b => !hayAnalisis() || palabrasClave(b.id).lista.length || all.some(i => i.bloque === b.id)).forEach(b => {
+  BLOQUES.filter(b => !hayAnalisis() || palabrasClave(b.id).lista.length || all.some(i => i.bloque === b.id && (filtro === 'todas' || categoria(i) === filtro))).forEach(b => {
     const sec = document.createElement('section');
     sec.className = 'bloque';
     sec.innerHTML =
