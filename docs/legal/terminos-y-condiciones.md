@@ -23,7 +23,7 @@ No podés: usar el servicio para fines ilegales; cargar el CV o datos de otras p
 ## 5. Precio y pago
 - Hay un plan gratuito con funciones limitadas **[DEFINIR]** y un plan pago de **$10.000 por mes [IVA INCLUIDO / MÁS IVA: DEFINIR]**.
 - El pago es mensual y recurrente a través de **Mercado Pago**, que te va a pedir autorizar la suscripción. Se renueva automáticamente cada mes hasta que la canceles.
-- **Prueba gratuita de 7 días.** Los primeros **7 días corridos, contados desde el día en que te suscribís**, no se te cobra nada. **Al terminar la prueba, Mercado Pago te cobra automáticamente los $10.000 del primer mes** y después uno por mes, salvo que canceles antes de que termine la prueba: en ese caso no se te cobra nada. La prueba es **una por cuenta**; si ya la usaste, el plan Pro se cobra desde el primer día. Te mostramos la fecha del primer cobro en la app antes y después de suscribirte.
+- **Prueba gratuita de 3 días.** Los primeros **3 días corridos, contados desde el día en que te suscribís**, no se te cobra nada. **Al terminar la prueba, Mercado Pago te cobra automáticamente los $10.000 del primer mes** y después uno por mes, salvo que canceles antes de que termine la prueba: en ese caso no se te cobra nada. La prueba es **una por cuenta**; si ya la usaste, el plan Pro se cobra desde el primer día. Te mostramos la fecha del primer cobro en la app antes y después de suscribirte.
 - Si cambiamos el precio, te avisamos con al menos **[30] días** de anticipación y podés cancelar antes de que se aplique.
 - Si un cobro falla, mantenemos tu acceso durante **10 días** para que lo regularices; pasado ese plazo la cuenta vuelve al plan gratuito.
 - Emitimos la factura o comprobante que corresponda **[DEFINIR CON CONTADOR]**.

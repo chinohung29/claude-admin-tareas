@@ -4,7 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 // Precio fijo en ARS: se puede cambiar con el secreto PRECIO_PRO_ARS sin tocar el código.
 const PRECIO_ARS = Number(Deno.env.get('PRECIO_PRO_ARS') ?? '10000')
 // Prueba gratuita en días corridos desde la suscripción: el primer cobro es al terminar la prueba. 0 la desactiva.
-const DIAS_PRUEBA = Number(Deno.env.get('PRUEBA_DIAS') ?? '7')
+const DIAS_PRUEBA = Number(Deno.env.get('PRUEBA_DIAS') ?? '3')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

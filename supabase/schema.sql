@@ -39,7 +39,7 @@ create table public.profiles (
   plan_vence_el timestamptz,
   mp_preapproval_id text,
   plan_desde timestamptz,
-  plan_prueba_hasta timestamptz, -- fin de los 7 días de prueba gratuita (corridos desde la suscripción); null si no hubo o ya terminó
+  plan_prueba_hasta timestamptz, -- fin de los 3 días de prueba gratuita (corridos desde la suscripción); null si no hubo o ya terminó
   creado_el timestamptz not null default now()
 );
 

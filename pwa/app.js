@@ -677,7 +677,7 @@ function renderPlan() {
   } else {
     html = '<p class="meta">Estás en el <b>plan gratuito</b>.</p>';
     sus.hidden = false;
-    sus.textContent = cuenta.plan_desde ? 'Pasarme al plan Pro · $10.000 por mes' : 'Probar 7 días gratis · después $10.000 por mes';
+    sus.textContent = cuenta.plan_desde ? 'Pasarme al plan Pro · $10.000 por mes' : 'Probar 3 días gratis · después $10.000 por mes';
   }
   box.innerHTML = html;
 }
