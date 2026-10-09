@@ -42,9 +42,11 @@ const GRUPOS: Grupo[] = [
   ] },
   { nombre: 'eCommerce', pedidas: ['Excel avanzado', 'Inglés', 'Power BI'], roles: [
     { termino: 'analista de ecommerce', pat: /e-?commerce|comercio electronico/ },
+    { termino: 'ecommerce operations', pat: /e-?commerce operations|operaciones de e-?commerce/ },
+    { termino: 'ecommerce specialist', pat: /e-?commerce (data )?specialist|especialista en e-?commerce/ },
   ] },
   { nombre: 'Ventas y comercial', pedidas: ['Inglés', 'Excel avanzado', 'Atención al cliente'], roles: [
-    { termino: 'ejecutivo de ventas', pat: /ventas|vendedor|comercial/ },
+    { termino: 'ejecutivo de ventas', pat: /ventas|vendedor|asesor comercial|ejecutivo comercial/ },
     { termino: 'ejecutivo de cuentas', pat: /ejecutivo de cuentas|account manager/ },
   ] },
   { nombre: 'Atención al cliente', pedidas: ['Inglés', 'Excel avanzado'], roles: [
@@ -59,7 +61,6 @@ const GRUPOS: Grupo[] = [
   ] },
   { nombre: 'Logística y operaciones', pedidas: ['Excel avanzado', 'Inglés', 'SAP'], roles: [
     { termino: 'analista de logística', pat: /logistic|deposito|supply chain|stock/ },
-    { termino: 'analista de operaciones', pat: /operaciones/ },
   ] },
   { nombre: 'Salud', pedidas: ['Inglés'], roles: [
     { termino: 'enfermero', pat: /enfermer/ },
@@ -135,7 +136,7 @@ export function analizarCV(texto: string): Analisis {
     }).filter((r) => r.puntaje > 0).sort((a, b) => b.puntaje - a.puntaje)
     return { g, roles, puntaje: roles.reduce((s, r) => s + r.puntaje, 0) }
   }).filter((x) => x.puntaje >= 3).sort((a, b) => b.puntaje - a.puntaje)
-    .filter((x, _i, todos) => x.puntaje >= todos[0].puntaje * 0.4) // los rubros secundarios muy flojos no se buscan
+    .filter((x, _i, todos) => x.puntaje >= todos[0].puntaje * 0.3) // los rubros secundarios muy flojos no se buscan
     .slice(0, BLOQUES.length)
 
   // Cada grupo conserva su bloque si es una de las tres familias; el resto ocupa los bloques que queden libres.

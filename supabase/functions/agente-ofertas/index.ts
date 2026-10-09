@@ -51,11 +51,12 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
   const db = admin()
   const ahora = new Date()
 
-  const { data: perfil } = await db.from('perfil').select('cv_texto, cv_actualizado, analisis, analisis_de_cv').eq('user_id', userId).maybeSingle()
+  const { data: perfil } = await db.from('perfil').select('cv_texto, cv_actualizado, analisis, analisis_de_cv, analisis_actualizado').eq('user_id', userId).maybeSingle()
 
   // Análisis del CV: se rehace si no existe o si el CV es más nuevo que el análisis.
   let analisis: Record<string, any> | null = perfil?.analisis ?? null
   let analizado = false
+  let analisisEl: string | null = perfil?.analisis_actualizado ?? null
   if (perfil?.cv_texto && (!analisis || !perfil.analisis_de_cv || new Date(perfil.analisis_de_cv) < new Date(perfil.cv_actualizado ?? 0))) {
     const antes: Record<string, string> = perfil.analisis?.bloques
       ? Object.fromEntries(perfil.analisis.bloques.map((b: any) => [b.id, b.nombre]))
@@ -76,7 +77,7 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
       analisis, analisis_actualizado: ahora.toISOString(), analisis_de_cv: perfil.cv_actualizado ?? ahora.toISOString(),
     }).eq('user_id', userId)
     if (errAnalisis) console.error('agente-ofertas: no se pudo guardar el análisis', errAnalisis.message)
-    else analizado = true
+    else { analizado = true; analisisEl = ahora.toISOString() }
   }
   // Frecuencia: no más de una corrida cada HORAS_ENTRE_BUSQUEDAS horas por usuario. Excepción: si cargó un CV
   // después de la última búsqueda, se busca de nuevo (como mínimo MINUTOS_CV_NUEVO después de la anterior).
@@ -85,7 +86,9 @@ async function procesarUsuario(userId: string, apiKey: string, diagnostico: bool
     .gte('ejecutado_el', desde).order('ejecutado_el', { ascending: false }).limit(1)
   if (recientes?.length) {
     const ultima = new Date(recientes[0].ejecutado_el).getTime()
-    const cvNuevo = !!perfil?.cv_actualizado && new Date(perfil.cv_actualizado).getTime() > ultima && ahora.getTime() - ultima >= MINUTOS_CV_NUEVO * 60_000
+    // Perfil nuevo = CV cargado o análisis rehecho después de la última búsqueda (aunque la persona toque el botón antes de tiempo).
+    const perfilNuevo = (!!analisisEl && new Date(analisisEl).getTime() > ultima) || (!!perfil?.cv_actualizado && new Date(perfil.cv_actualizado).getTime() > ultima)
+    const cvNuevo = perfilNuevo && ahora.getTime() - ultima >= MINUTOS_CV_NUEVO * 60_000
     if (!cvNuevo) {
       const proxima = new Date(ultima + HORAS_ENTRE_BUSQUEDAS * 3_600_000).toISOString()
       return { userId, omitido: 'reciente', proxima_busqueda: proxima, analizado }
