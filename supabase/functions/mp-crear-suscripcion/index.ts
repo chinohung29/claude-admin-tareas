@@ -44,7 +44,8 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        reason: `Búsqueda laboral · Plan Pro ($${PRECIO_ARS}/mes)${conPrueba ? ` · ${DIAS_PRUEBA} días de prueba gratis` : ''}`,
+        // Mercado Pago rechaza un `reason` de más de 60 caracteres.
+        reason: `Búsqueda laboral · Plan Pro${conPrueba ? ` · ${DIAS_PRUEBA} días gratis` : ''}`.slice(0, 60),
         external_reference: `${user.id}:pro`,
         payer_email: emailPagador,
         back_url: `${appUrl}/`,
