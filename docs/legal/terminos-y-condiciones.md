@@ -23,6 +23,7 @@ No podés: usar el servicio para fines ilegales; cargar el CV o datos de otras p
 ## 5. Precio y pago
 - Hay un plan gratuito con funciones limitadas **[DEFINIR]** y un plan pago de **$10.000 por mes [IVA INCLUIDO / MÁS IVA: DEFINIR]**.
 - El pago es mensual y recurrente a través de **Mercado Pago**, que te va a pedir autorizar la suscripción. Se renueva automáticamente cada mes hasta que la canceles.
+- **Prueba gratuita de 7 días.** Los primeros **7 días corridos, contados desde el día en que te suscribís**, no se te cobra nada. **Al terminar la prueba, Mercado Pago te cobra automáticamente los $10.000 del primer mes** y después uno por mes, salvo que canceles antes de que termine la prueba: en ese caso no se te cobra nada. La prueba es **una por cuenta**; si ya la usaste, el plan Pro se cobra desde el primer día. Te mostramos la fecha del primer cobro en la app antes y después de suscribirte.
 - Si cambiamos el precio, te avisamos con al menos **[30] días** de anticipación y podés cancelar antes de que se aplique.
 - Si un cobro falla, mantenemos tu acceso durante **10 días** para que lo regularices; pasado ese plazo la cuenta vuelve al plan gratuito.
 - Emitimos la factura o comprobante que corresponda **[DEFINIR CON CONTADOR]**.
@@ -31,10 +32,11 @@ No podés: usar el servicio para fines ilegales; cargar el CV o datos de otras p
 Podés revocar la contratación del plan Pro dentro de los **10 días corridos** de haberla hecho (art. 34 de la Ley 24.240 y art. 1110 del Código Civil y Comercial), sin costo ni responsabilidad. Usá el botón **"Botón de arrepentimiento"**, que está siempre visible en la pantalla de inicio de la app y en tu cuenta.
 - Al usarlo, **la suscripción se cancela y el plan Pro se corta en el momento.**
 - Te mostramos al instante un **código de identificación** de tu solicitud (siempre dentro de las 24 horas).
-- Te **devolvemos lo pagado** por el mismo medio de pago, en un plazo de **[PLAZO A DEFINIR]**.
+- Te **devolvemos lo pagado** por el mismo medio de pago, en un plazo de **[PLAZO A DEFINIR]**. Si lo usás durante la prueba gratuita, no se te cobró nada y no hay nada que devolver.
+- El plazo de 10 días corridos se cuenta desde el día de la contratación, es decir, desde que te suscribís, incluso si todavía estás en la prueba gratuita **[CONFIRMAR CON ABOGADO: si el plazo debe contarse desde el primer cobro]**.
 
 ## 7. Cómo cancelar o dar de baja el servicio
-Podés cancelar la suscripción en cualquier momento desde la app, que es el mismo medio por el que la contrataste, sin penalidad (art. 10 ter de la Ley 24.240). **Seguís con el plan Pro hasta el final del período que ya pagaste** y no se vuelve a cobrar. También podés **eliminar tu cuenta** y tus datos desde la app.
+Podés cancelar la suscripción en cualquier momento desde la app, que es el mismo medio por el que la contrataste, sin penalidad (art. 10 ter de la Ley 24.240). **Seguís con el plan Pro hasta el final del período que ya pagaste** (o, si cancelás durante la prueba gratuita, hasta que termine la prueba, sin cobro alguno) y no se vuelve a cobrar. También podés **eliminar tu cuenta** y tus datos desde la app.
 
 ## 8. Tu contenido
 Tu CV y tus datos son tuyos. Nos das permiso, limitado a lo necesario para darte el servicio, a tratarlos como explica la Política de Privacidad (incluido el análisis con IA). La aplicación y su diseño son nuestros.

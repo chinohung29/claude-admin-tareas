@@ -6,15 +6,17 @@
 
 export const GRACIA_DIAS = 10
 
+
 export interface Perfil {
   plan: string
   mp_preapproval_id: string | null
   plan_vence_el: string | null
   plan_desde: string | null
+  plan_prueba_hasta?: string | null
 }
 
 export type Evento =
-  | { tipo: 'preapproval'; preapprovalId: string; status: string; plan: string }
+  | { tipo: 'preapproval'; preapprovalId: string; status: string; plan: string; pruebaDias?: number }
   | { tipo: 'cobro'; preapprovalId: string; resultado: 'exitoso' | 'fallido' | 'otro' }
 
 export type Cambio = Record<string, string | null>
@@ -51,6 +53,10 @@ export function decidirCambio(evento: Evento, perfil: Perfil, ahora: Date): Camb
       // ni mover la fecha de inicio (que cuenta los 10 días de arrepentimiento).
       if (!esVigente) {
         cambio.plan_desde = ahora.toISOString()
+        // Los días de prueba corren desde el día de la suscripción; hasta entonces no hay cobro.
+        cambio.plan_prueba_hasta = evento.pruebaDias && evento.pruebaDias > 0
+          ? new Date(ahora.getTime() + evento.pruebaDias * 86_400_000).toISOString()
+          : null
         if (perfil.plan_vence_el) cambio.plan_vence_el = null
       }
       return cambio

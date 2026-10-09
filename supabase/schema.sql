@@ -39,6 +39,7 @@ create table public.profiles (
   plan_vence_el timestamptz,
   mp_preapproval_id text,
   plan_desde timestamptz,
+  plan_prueba_hasta timestamptz, -- fin de los 7 días de prueba gratuita (corridos desde la suscripción); null si no hubo o ya terminó
   creado_el timestamptz not null default now()
 );
 
@@ -152,6 +153,7 @@ create table public.solicitudes_arrepentimiento (
   mp_preapproval_id text,
   motivo text,
   solicitado_el timestamptz not null default now(),
+  en_prueba boolean not null default false, -- true: se revocó durante la prueba gratuita, no se cobró nada
   estado text not null default 'pendiente_reintegro' check (estado in ('pendiente_reintegro', 'reintegrado', 'rechazada'))
 );
 alter table public.solicitudes_arrepentimiento enable row level security;

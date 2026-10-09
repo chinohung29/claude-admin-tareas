@@ -1,6 +1,14 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { decidirCambio, resultadoDeCobro, type Evento } from './decision.ts'
 
+// Días de prueba gratuita de la suscripción, según lo que informa Mercado Pago (auto_recurring.free_trial).
+function diasDePrueba(preapproval: any): number {
+  const ft = preapproval?.auto_recurring?.free_trial
+  const n = Number(ft?.frequency)
+  if (!n || n < 1) return 0
+  return ft?.frequency_type === 'months' ? n * 30 : n
+}
+
 // Notificación de Mercado Pago: nunca confiamos en los datos del payload (podrían ser falsificados).
 // Solo usamos el `id` para volver a consultar el estado real contra la API de Mercado Pago con nuestro
 // propio access token, y recién ahí actualizamos el plan del usuario.
@@ -55,14 +63,14 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
   const { data: perfil } = await supabase
     .from('profiles')
-    .select('plan, mp_preapproval_id, plan_vence_el, plan_desde')
+    .select('plan, mp_preapproval_id, plan_vence_el, plan_desde, plan_prueba_hasta')
     .eq('id', userId)
     .single()
   if (!perfil) return ok()
 
   const evento: Evento = esCobro
     ? { tipo: 'cobro', preapprovalId, resultado: resultadoCobro }
-    : { tipo: 'preapproval', preapprovalId, status: String(preapproval.status), plan }
+    : { tipo: 'preapproval', preapprovalId, status: String(preapproval.status), plan, pruebaDias: diasDePrueba(preapproval) }
 
   const cambio = decidirCambio(evento, perfil, new Date())
   if (cambio) {

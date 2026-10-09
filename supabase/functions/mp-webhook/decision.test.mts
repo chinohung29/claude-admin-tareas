@@ -33,4 +33,11 @@ assert.equal(resultadoDeCobro({ status: 'processed', payment: { status: 'approve
 assert.equal(resultadoDeCobro({ status: 'recycling' }), 'fallido')
 assert.equal(resultadoDeCobro({ payment: { status: 'rejected' } }), 'fallido')
 assert.equal(resultadoDeCobro({ status: 'scheduled' }), 'otro'); console.log('ok interpretación de cobros')
+// Prueba gratuita
+c = decidirCambio({ tipo: 'preapproval', preapprovalId: 'T1', status: 'authorized', plan: 'pro', pruebaDias: 7 }, base, ahora)
+assert.equal(c.plan_desde, ahora.toISOString()); assert.equal(c.plan_prueba_hasta, '2026-10-17T12:00:00.000Z'); console.log('ok la prueba dura 7 días corridos desde la suscripción')
+c = decidirCambio({ tipo: 'preapproval', preapprovalId: 'T2', status: 'authorized', plan: 'pro' }, base, ahora)
+assert.equal(c.plan_prueba_hasta, null); console.log('ok sin prueba (ya la usó): plan_prueba_hasta queda en null')
+c = decidirCambio({ tipo: 'preapproval', preapprovalId: 'T1', status: 'authorized', plan: 'pro', pruebaDias: 7 }, { ...pro, mp_preapproval_id: 'T1', plan_prueba_hasta: '2026-10-17T12:00:00.000Z' }, ahora)
+assert.ok(!('plan_prueba_hasta' in c)); console.log('ok un aviso repetido no reinicia la prueba')
 console.log('TODAS LAS PRUEBAS PASARON')

@@ -610,7 +610,12 @@ function renderPlan() {
   if (!cuenta) { box.innerHTML = ''; return; }
   const vence = cuenta.plan_vence_el ? new Date(cuenta.plan_vence_el) : null;
   let html;
-  if (cuenta.plan === 'pro' && cuenta.mp_preapproval_id) {
+  const prueba = cuenta.plan_prueba_hasta && new Date(cuenta.plan_prueba_hasta) > new Date() ? new Date(cuenta.plan_prueba_hasta) : null;
+  if (cuenta.plan === 'pro' && cuenta.mp_preapproval_id && prueba) {
+    html = '<p class="meta"><b>Plan Pro en prueba gratis hasta el ' + fecha(prueba.toISOString()) + '.</b> No se te cobró nada. El primer cobro de $10.000 es el ' + fecha(prueba.toISOString()) +
+      ' y después se renueva cada mes. Si cancelás antes, no se te cobra.' + '</p>';
+    can.hidden = false;
+  } else if (cuenta.plan === 'pro' && cuenta.mp_preapproval_id) {
     html = '<p class="meta"><b>Plan Pro activo.</b> Se renueva cada mes' + (cuenta.plan_desde ? ' (contratado el ' + fecha(cuenta.plan_desde) + ')' : '') + '.' +
       (vence ? ' <b>Hay un problema con tu último cobro:</b> regularizalo en Mercado Pago antes del ' + fecha(vence.toISOString()) + ' para no perder el plan.' : '') + '</p>';
     can.hidden = false;
@@ -622,7 +627,8 @@ function renderPlan() {
     sus.hidden = false; sus.textContent = 'Volver al plan Pro · $10.000 por mes';
   } else {
     html = '<p class="meta">Estás en el <b>plan gratuito</b>.</p>';
-    sus.hidden = false; sus.textContent = 'Pasarme al plan Pro · $10.000 por mes';
+    sus.hidden = false;
+    sus.textContent = cuenta.plan_desde ? 'Pasarme al plan Pro · $10.000 por mes' : 'Probar 7 días gratis · después $10.000 por mes';
   }
   box.innerHTML = html;
 }
@@ -630,10 +636,11 @@ document.getElementById('planSuscribir').addEventListener('click', async () => {
   planMsg('Preparando el pago en Mercado Pago…');
   const { data, error } = await sb.functions.invoke('mp-crear-suscripcion', { method: 'POST', body: {} });
   if (error) { planMsg(await msgError(error)); return; }
-  if (data && data.init_point) { planMsg('Te llevamos a Mercado Pago. Cuando termines, volvé a la app: el plan se activa en unos minutos.'); location.href = data.init_point; }
+  if (data && data.init_point) { planMsg('Te llevamos a Mercado Pago.' + (data.prueba_dias ? ' Tenés ' + data.prueba_dias + ' días de prueba gratis: el primer cobro es al terminar la prueba.' : '') + ' Cuando termines, volvé a la app: el plan se activa en unos minutos.'); location.href = data.init_point; }
 });
 document.getElementById('planCancelar').addEventListener('click', async () => {
-  if (!confirm('¿Cancelar la suscripción? Conservás el plan Pro hasta el fin del período que ya pagaste y no se vuelve a cobrar.')) return;
+  const enPrueba = !!(cuenta && cuenta.plan_prueba_hasta && new Date(cuenta.plan_prueba_hasta) > new Date());
+  if (!confirm(enPrueba ? '¿Cancelar la suscripción? Conservás el plan Pro hasta que termine la prueba gratis y no se te cobra nada.' : '¿Cancelar la suscripción? Conservás el plan Pro hasta el fin del período que ya pagaste y no se vuelve a cobrar.')) return;
   planMsg('Cancelando…');
   const { data, error } = await sb.functions.invoke('mp-cancelar-suscripcion', { method: 'POST', body: {} });
   if (error) { planMsg(await msgError(error)); return; }
@@ -660,7 +667,7 @@ document.getElementById('arrConfirmar').addEventListener('click', async () => {
   btn.disabled = false;
   if (error) { arrMsg(await msgError(error)); return; }
   document.getElementById('arrAccion').hidden = true; btn.hidden = true;
-  arrMsg('Listo: revocaste tu contratación. Tu código de identificación es ' + data.numero_reclamo + '. Guardalo. El plan Pro se cortó y vamos a gestionar la devolución de lo pagado por el mismo medio de pago.');
+  arrMsg('Listo: revocaste tu contratación. Tu código de identificación es ' + data.numero_reclamo + '. Guardalo. El plan Pro se cortó.' + (data.en_prueba ? ' Estabas en la prueba gratis: no se te cobró nada, así que no hay nada que devolver.' : ' Vamos a gestionar la devolución de lo pagado por el mismo medio de pago.'));
   cargarCuenta();
 });
 

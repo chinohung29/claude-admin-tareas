@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'No se pudo cancelar la suscripción en Mercado Pago.' }, 502)
     }
 
-    await admin.from('profiles').update({ mp_preapproval_id: null, plan_vence_el: venceEl }).eq('id', user.id)
+    await admin.from('profiles').update({ mp_preapproval_id: null, plan_vence_el: venceEl, plan_prueba_hasta: null }).eq('id', user.id)
     return json({ plan_vence_el: venceEl })
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'Error inesperado.' }, 500)

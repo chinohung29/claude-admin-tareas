@@ -68,7 +68,7 @@ Repo: `chinohung29/claude-admin-tareas`, rama `claude/serene-cray-96u5fr`
   - `MP_ACCESS_TOKEN` = token de **prueba** del vendedor.
   - `APP_URL` = `https://busqueda-laboral-lmh.netlify.app`
 - [ ] En Mercado Pago → *Webhooks*: URL `https://bclqrmeeqssvqovkvvkz.supabase.co/functions/v1/mp-webhook`, eventos de suscripciones (preapproval) y pagos.
-- [ ] Probar con el comprador de prueba: suscribirse, pago rechazado, cancelar, botón de arrepentimiento (dentro de 10 días).
+- [ ] Probar con el comprador de prueba: suscribirse (debe mostrar 7 días de prueba gratis y el primer cobro recién al octavo día), pago rechazado, cancelar durante la prueba (sin cobro), botón de arrepentimiento (dentro de 10 días) y que una segunda suscripción de la misma cuenta ya no tenga prueba.
 - [ ] Yo: corregir lo que falle y definir qué limita el plan gratuito (hoy el plan solo se registra).
 
 ### 4. Claude para analizar CV y ordenar ofertas — Vos + Yo

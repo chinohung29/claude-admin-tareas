@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
 
     const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { data: perfil, error: perfilError } = await admin
-      .from('profiles').select('plan, email, mp_preapproval_id, plan_desde').eq('id', user.id).single()
+      .from('profiles').select('plan, email, mp_preapproval_id, plan_desde, plan_prueba_hasta').eq('id', user.id).single()
     if (perfilError || !perfil) return json({ error: 'No se encontró tu perfil.' }, 400)
 
     if (perfil.plan !== 'pro') {
@@ -60,9 +60,12 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Si todavía está en los días de prueba no se le cobró nada: se deja constancia y no hay reintegro.
+    const enPrueba = !!perfil.plan_prueba_hasta && new Date(perfil.plan_prueba_hasta) > new Date()
+
     // Se corta el acceso al plan pago en el acto.
     await admin.from('profiles')
-      .update({ mp_preapproval_id: null, plan: 'cancelado', plan_vence_el: new Date().toISOString() })
+      .update({ mp_preapproval_id: null, plan: 'cancelado', plan_vence_el: new Date().toISOString(), plan_prueba_hasta: null })
       .eq('id', user.id)
 
     const { data: solicitud, error: insertError } = await admin
@@ -73,6 +76,7 @@ Deno.serve(async (req: Request) => {
         plan: perfil.plan,
         mp_preapproval_id: perfil.mp_preapproval_id,
         motivo: typeof motivo === 'string' ? motivo.slice(0, 500) : null,
+        en_prueba: enPrueba,
       })
       .select('numero_reclamo')
       .single()
@@ -80,7 +84,7 @@ Deno.serve(async (req: Request) => {
       console.error('Error al registrar la solicitud de arrepentimiento:', insertError)
       return json({ error: 'La suscripción se canceló, pero no pudimos registrar el reclamo. Escribinos para gestionar la devolución.' }, 500)
     }
-    return json({ numero_reclamo: solicitud.numero_reclamo })
+    return json({ numero_reclamo: solicitud.numero_reclamo, en_prueba: enPrueba })
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'Error inesperado.' }, 500)
   }
