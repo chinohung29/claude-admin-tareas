@@ -25,6 +25,7 @@ function Refresh-Path {
 function Explain-Error($text) {
     # Traduce causas comunes a español simple
     $t = $text.ToLower()
+    if ($t -match "control de aplicaciones|application control|smart app control|blocked this file") { return "Windows (Smart App Control / Control de aplicaciones) bloquea el Python que descarga uv por no estar firmado. Uso el Python firmado de python.org." }
     if ($t -match "winget.*not recognized|'winget'") { return "Windows no tiene 'winget'. Instala 'App Installer' desde Microsoft Store y vuelve a correr el script." }
     if ($t -match "could not resolve|name or service|getaddrinfo|timed out|connection") { return "Problema de red: no se pudo descargar. Revisa tu internet o proxy y reintenta." }
     if ($t -match "no space left|not enough space|disk full") { return "No hay espacio suficiente en disco. Libera al menos 25 GB." }
@@ -111,6 +112,26 @@ $Resumen["Carpeta"] = $JarvisDir
 # ---------- 3. Dependencias Python ----------
 Say "Etapa 3: voy a instalar las dependencias (incluye faster-whisper para escuchar y Kokoro para hablar). uv elige el Python 3.10-3.13."
 Invoke-Step "uv sync" { uv sync --extra desktop --extra voice }
+
+# Windows con Smart App Control bloquea el Python sin firmar que baja uv (falla _ctypes).
+Say "Verificando que Windows deje correr el Python del proyecto."
+$global:LASTEXITCODE = 0
+uv run python -c "import ctypes" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Warn "Windows bloqueó el Python de uv (Control de aplicaciones). Instalo Python 3.13 firmado de python.org y rehago el entorno."
+    winget install -e --id Python.Python.3.13 --accept-package-agreements --accept-source-agreements
+    Refresh-Path
+    $env:UV_PYTHON_PREFERENCE = "only-system"
+    setx UV_PYTHON_PREFERENCE only-system | Out-Null
+    if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
+    $global:LASTEXITCODE = 0
+    Invoke-Step "uv sync (Python del sistema)" { uv sync --extra desktop --extra voice }
+    $global:LASTEXITCODE = 0
+    uv run python -c "import ctypes" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Windows sigue bloqueando Python. Revisa Seguridad de Windows > Control de aplicaciones y navegador > Smart App Control. Si tu PC es de empresa, pide a TI que permita Python."
+    }
+}
 
 # ---------- 4. Modelo ----------
 if ([string]::IsNullOrEmpty($Model)) {
