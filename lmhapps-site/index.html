@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMH Apps · Automatización con IA y software a medida</title>
+<meta name="description" content="Automatizaciones con IA, rediseño de procesos, herramientas a medida, aplicaciones web y PWA para pequeñas y medianas empresas. Pedí tu cotización.">
+<meta name="theme-color" content="#0c1014">
+<meta property="og:title" content="LMH Apps · Automatización con IA y software a medida">
+<meta property="og:description" content="Soluciones digitales para pequeñas y medianas empresas. Cotización sin compromiso.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0c1014; --surface:#101c2c; --ink:#eef2f7; --muted:#a9b6c6; --line:#1f3452;
+  --brand:#0e1c2d; --accent:#79adeb; --accent-2:#97c6fd; --accent-ink:#06121f; --accent-soft:#12294a;
+  --silver:#d6d8db;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;text-decoration:none}
+.logo img{height:40px;width:auto;border-radius:10px;border:1px solid var(--line)}
+.logo i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--brand);color:var(--accent-2);border:1px solid var(--line);font-style:normal;font-size:14px;letter-spacing:.02em}
+.nav a.link{display:none;text-decoration:none;color:var(--muted);font-size:15px;margin-left:24px}
+.nav a.link:hover{color:var(--ink)}
+@media(min-width:760px){.nav a.link{display:inline}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:12px;font-weight:600;font-size:16px;text-decoration:none;border:1.5px solid transparent;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{box-shadow:0 6px 22px rgba(121,173,235,.35)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--accent)}
+.btn-sm{min-height:40px;padding:0 16px;font-size:15px}
+.hero{padding-top:64px;padding-bottom:56px}
+.hero-grid{display:grid;gap:40px;align-items:center}
+.hero-logo{display:none;width:100%;max-width:360px;height:auto;border-radius:50%;border:1px solid var(--line);box-shadow:0 0 60px rgba(121,173,235,.18);justify-self:center}
+@media(min-width:900px){.hero-grid{grid-template-columns:1.4fr 1fr}.hero-logo{display:block}}
+main{background:radial-gradient(900px 420px at 20% 0,rgba(12,36,72,.85),transparent 70%) no-repeat}
+.eyebrow{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+h1{font-size:clamp(32px,6vw,56px);line-height:1.1;letter-spacing:-.025em;margin:18px 0 18px;max-width:18ch;background:linear-gradient(180deg,#ffffff 0%,var(--silver) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(17px,2.4vw,20px);color:var(--muted);max-width:60ch;margin:0 0 30px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.hero-note{margin-top:18px;font-size:14px;color:var(--muted)}
+section{padding:56px 0}
+h2{font-size:clamp(26px,4vw,36px);line-height:1.2;letter-spacing:-.02em;margin:0 0 10px}
+.sub{color:var(--muted);max-width:60ch;margin:0 0 32px}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:620px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:940px){.grid.g3{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow)}
+.card .ico{width:46px;height:46px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);border:1.5px solid var(--accent);box-shadow:0 0 14px rgba(121,173,235,.25);display:grid;place-items:center;margin-bottom:14px}
+.card h3{margin:0 0 6px;font-size:19px;letter-spacing:-.01em}
+.card p{margin:0;color:var(--muted);font-size:15.5px}
+svg{display:block}
+.steps{counter-reset:s;display:grid;gap:16px}
+@media(min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{position:relative;padding:24px 24px 24px 24px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 16px 16px 0;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.step::before{counter-increment:s;content:"0" counter(s);font-weight:700;color:var(--accent-2);font-size:14px;letter-spacing:.08em}
+.step h3{margin:4px 0 6px;font-size:19px}
+.step p{margin:0;color:var(--muted);font-size:15.5px}
+.band{background:linear-gradient(160deg,#0e1c2d 0%,#0c2448 100%);border:1px solid var(--line);color:#eaf1f8;border-radius:24px;padding:36px 24px}
+@media(min-width:760px){.band{padding:48px}}
+.band h2{color:#fff}
+.band p{color:#b4c4d8}
+.checks{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
+@media(min-width:760px){.checks{grid-template-columns:repeat(2,1fr)}}
+.checks li{display:flex;gap:10px;align-items:flex-start;color:#eaf1f8}
+.checks svg{flex:none;margin-top:3px;color:var(--accent-2)}
+.contact-grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:760px){.contact-grid{grid-template-columns:repeat(2,1fr)}}
+.contact-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;text-decoration:none;box-shadow:var(--shadow);transition:border-color .12s,transform .12s}
+.contact-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.contact-card .ico{flex:none;width:46px;height:46px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);border:1.5px solid var(--accent);display:grid;place-items:center}
+.contact-card b{display:block;font-size:16px}
+.contact-card span{display:block;color:var(--muted);font-size:14.5px;word-break:break-word}
+.contact-card.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.contact-card.primary .ico{background:rgba(6,18,31,.15);color:var(--accent-ink);border-color:rgba(6,18,31,.35);box-shadow:none}
+.contact-card.primary span{color:inherit;opacity:.85}
+
+.proj{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:760px){.proj{grid-template-columns:repeat(2,1fr)}}
+.proj .card{display:flex;flex-direction:column;gap:12px}
+.tag{align-self:flex-start;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+.proj .card .btn{align-self:flex-start;margin-top:auto}
+.card.soon{border-style:dashed;background:transparent;box-shadow:none;justify-content:center}
+.card.soon h3{color:var(--muted)}
+
+/* Efecto al pasar el mouse: barrido de color y texto resaltado */
+.btn,.contact-card{position:relative;overflow:hidden;isolation:isolate}
+.btn::before,.contact-card::before{content:"";position:absolute;inset:0;z-index:-1;transform:translateX(-101%);transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.btn{transition:color .3s ease,text-shadow .3s ease,border-color .3s,box-shadow .3s,transform .12s}
+.btn-primary::before{background:#cfe3ff}
+.btn-ghost::before{background:var(--accent)}
+.contact-card::before{background:linear-gradient(90deg,rgba(121,173,235,.22),rgba(121,173,235,.06))}
+.contact-card.primary::before{background:#cfe3ff}
+.contact-card b,.contact-card span{transition:color .3s ease,transform .3s ease}
+.nav a.link{padding-bottom:3px;background:linear-gradient(var(--accent-2),var(--accent-2)) left bottom/0 2px no-repeat;transition:color .25s ease,background-size .3s ease}
+@media(hover:hover){
+  .btn:hover::before,.contact-card:hover::before{transform:translateX(0)}
+  .btn-primary:hover{color:#06121f;text-shadow:0 0 .6px #06121f}
+  .btn-ghost:hover{color:var(--accent-ink);text-shadow:0 0 .6px var(--accent-ink)}
+  .contact-card:hover b{color:var(--accent-2);transform:translateX(4px)}
+  .contact-card.primary:hover b{color:#06121f}
+  .contact-card:hover span{transform:translateX(4px)}
+  .nav a.link:hover{color:var(--ink);background-size:100% 2px}
+}
+.btn:focus-visible::before,.contact-card:focus-visible::before{transform:translateX(0)}
+.btn-primary:focus-visible{color:#06121f}
+.btn-ghost:focus-visible{color:var(--accent-ink)}
+
+/* Zoom de lectura en los recuadros de servicios (solo computadora con mouse) */
+@media (hover:hover) and (min-width:900px){
+  #servicios .card{position:relative;transition:transform .35s cubic-bezier(.2,.7,.2,1) .15s,box-shadow .35s ease .15s,border-color .35s ease .15s,background-color .35s ease .15s}
+  #servicios .card:hover{transform:scale(1.08);z-index:5;border-color:var(--accent);background-color:#14263c;box-shadow:0 22px 56px rgba(0,0,0,.6),0 0 0 1px var(--accent)}
+  #servicios .card:hover h3{color:var(--accent-2)}
+}
+@media (hover:hover) and (min-width:1100px){
+  #servicios .card:hover{transform:scale(1.13)}
+}
+@media (hover:hover) and (min-width:900px){
+  #servicios .card:hover p{color:var(--ink)}
+  #servicios .card h3,#servicios .card p{transition:color .3s ease .15s}
+}
+
+/* Interruptor de sonido (solo computadora con mouse) */
+.snd{display:none;position:fixed;left:16px;bottom:16px;z-index:20;align-items:center;gap:8px;height:44px;padding:0 14px 0 12px;border-radius:999px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);color:var(--ink);font:600 14px/1 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;transition:border-color .2s,color .2s}
+.snd:hover{border-color:var(--accent)}
+.snd[aria-pressed="false"]{color:var(--muted)}
+.snd .off{display:none}
+.snd[aria-pressed="false"] .on{display:none}
+.snd[aria-pressed="false"] .off{display:block}
+@media (hover:hover) and (min-width:900px){.snd{display:inline-flex}}
+/* Consultas (formulario) */
+#consultas .form-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);max-width:760px}
+@media(min-width:760px){#consultas .form-card{padding:32px}}
+.form-grid{display:grid;gap:18px}
+@media(min-width:760px){.form-grid.two{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-weight:600;font-size:14px;margin:0 0 6px;color:var(--ink)}
+.field label .opt{font-weight:400;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;min-height:48px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:#0c1626;color:var(--ink);font:inherit;transition:border-color .12s}
+.field textarea{min-height:150px;resize:vertical;line-height:1.5}
+.field select{appearance:auto}
+.field input::placeholder,.field textarea::placeholder{color:#6f8097}
+.field input:hover,.field select:hover,.field textarea:hover{border-color:#2c4a73}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-color:var(--accent)}
+.field [aria-invalid="true"]{border-color:#e5736f}
+.field-error{margin:6px 0 0;font-size:13.5px;color:#ffb4b0;min-height:0}
+.field-error:empty{display:none}
+.counter{margin:6px 0 0;font-size:13px;color:var(--muted);text-align:right}
+.field label.consent{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;font-weight:400;color:var(--muted);margin:0;cursor:pointer}
+.field .consent input{flex:none;width:22px;height:22px;min-height:0;padding:0;margin:1px 0 0;accent-color:var(--accent)}
+.hp{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
+.form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.form-actions .btn[disabled]{opacity:.65;cursor:progress;box-shadow:none}
+.form-note{font-size:13.5px;color:var(--muted);margin:14px 0 0}
+.form-status{margin:18px 0 0;padding:14px 16px;border-radius:12px;font-size:15px;display:none}
+.form-status.show{display:block}
+.form-status.err{background:#2a1517;border:1px solid #7a2f33;color:#ffd3d1}
+.form-status a{color:#fff}
+.thanks{display:none;text-align:left}
+.thanks.show{display:block}
+.thanks .ico{width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);border:1.5px solid var(--accent);display:grid;place-items:center;margin-bottom:16px}
+.thanks h3{margin:0 0 8px;font-size:24px;letter-spacing:-.01em}
+.thanks p{margin:0 0 20px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:14px}
+.foot{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between}
+.foot a{text-decoration:none}.foot a:hover{color:var(--ink)}
+.wa-float{position:fixed;right:16px;bottom:16px;z-index:20;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.wa-float:hover{transform:scale(1.05)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#inicio" aria-label="LMH Apps, inicio"><img src="assets/logo-mark.png" alt="LMH Apps" width="84" height="40"></a>
+    <nav aria-label="Principal">
+      <a class="link" href="#servicios">Servicios</a>
+      <a class="link" href="#portafolio">Portafolio</a>
+      <a class="link" href="#proceso">Cómo trabajamos</a>
+      <a class="link" href="#consultas">Consultas</a>
+      <a class="link" href="#contacto">Contacto</a>
+      <a class="btn btn-primary btn-sm" href="#contacto" style="margin-left:20px">Pedir cotización</a>
+    </nav>
+  </div>
+</header>
+
+<main id="inicio">
+  <div class="wrap hero"><div class="hero-grid"><div class="hero-text">
+    <span class="eyebrow">Para pequeñas y medianas empresas</span>
+    <h1>Menos tareas repetitivas. Más tiempo para tu negocio.</h1>
+    <p class="lead">Diseño e implemento automatizaciones con inteligencia artificial y herramientas a medida que ordenan tus procesos, ahorran horas de trabajo manual y se adaptan a cómo trabaja tu empresa.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#contacto">Pedir cotización</a>
+      <a class="btn btn-ghost" href="#servicios">Ver servicios</a>
+    </div>
+    <p class="hero-note">Primera conversación sin costo ni compromiso.</p>
+    </div>
+    <img class="hero-logo" src="assets/logo.png" alt="Logo de LMH Apps" width="360" height="360">
+  </div></div>
+
+  <section id="servicios">
+    <div class="wrap">
+      <h2>Servicios</h2>
+      <p class="sub">Soluciones concretas, pensadas para el tamaño y la realidad de tu empresa.</p>
+      <div class="grid g3">
+        <article class="card">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01M9 17h6"/></svg></div>
+          <h3>Automatizaciones con IA</h3>
+          <p>Respuestas, carga de datos, reportes y seguimiento de clientes resueltos de forma automática, sin que alguien tenga que hacerlo a mano.</p>
+        </article>
+        <article class="card">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></div>
+          <h3>Rediseño de procesos</h3>
+          <p>Analizo cómo trabajan hoy, detecto cuellos de botella y propongo un circuito más simple, claro y medible.</p>
+        </article>
+        <article class="card">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div>
+          <h3>Herramientas a medida</h3>
+          <p>Paneles, planillas inteligentes y utilidades internas hechas para tu operación, en lugar de forzar tu trabajo a un sistema genérico.</p>
+        </article>
+        <article class="card">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+          <h3>Aplicaciones web y PWA</h3>
+          <p>Aplicaciones que funcionan en cualquier dispositivo y se instalan en el celular como una app, sin pasar por tiendas.</p>
+        </article>
+        <article class="card">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div>
+          <h3>Integraciones</h3>
+          <p>Conecto las herramientas que ya usás (correo, WhatsApp, planillas, tienda online, facturación) para que compartan información solas.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="portafolio">
+    <div class="wrap">
+      <h2>Portafolio</h2>
+      <p class="sub">Un ejemplo de lo que construyo. Pronto sumaré más proyectos.</p>
+      <div class="proj">
+        <article class="card">
+          <span class="tag">Aplicación web</span>
+          <h3>LMH Flow</h3>
+          <p>Aplicación web para gestionar el flujo de caja de un negocio, desarrollada por LMH Apps.</p>
+          <a class="btn btn-primary" href="https://lmh-flowfinance.netlify.app" target="_blank" rel="noopener">Ver aplicación</a>
+        </article>
+        <article class="card soon">
+          <h3>Próximamente</h3>
+          <p>Más proyectos y casos de trabajo se irán sumando acá.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="proceso">
+    <div class="wrap">
+      <h2>Cómo trabajamos</h2>
+      <p class="sub">Un proceso simple, sin sorpresas.</p>
+      <div class="steps">
+        <div class="step"><h3>Conversación inicial</h3><p>Nos reunimos para entender tu negocio, qué te quita tiempo y qué querés lograr.</p></div>
+        <div class="step"><h3>Propuesta y cotización</h3><p>Te presento una solución clara, con alcance, plazos y presupuesto definidos antes de empezar.</p></div>
+        <div class="step"><h3>Implementación y ajuste</h3><p>Lo construyo, lo probamos juntos y lo ajusto hasta que funcione como necesitás.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="band">
+        <h2>Pensado para empresas como la tuya</h2>
+        <p>No hace falta un equipo de tecnología ni un gran presupuesto para empezar a automatizar.</p>
+        <ul class="checks">
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Lenguaje claro, sin tecnicismos</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Trato directo con quien desarrolla</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Soluciones a la medida de tu operación</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Presupuesto acordado antes de empezar</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="consultas">
+    <div class="wrap">
+      <h2>Consultas</h2>
+      <p class="sub">¿Tenés una pregunta o querés pedir algo puntual? Escribilo acá y te respondemos por correo.</p>
+
+      <div class="form-card">
+        <form id="consultaForm" novalidate autocomplete="on">
+          <div class="form-grid">
+            <div class="form-grid two">
+              <div class="field">
+                <label for="cf-nombre">Nombre</label>
+                <input id="cf-nombre" name="name" type="text" autocomplete="name" maxlength="80" required aria-describedby="cf-nombre-err" placeholder="Tu nombre">
+                <p class="field-error" id="cf-nombre-err" role="alert"></p>
+              </div>
+              <div class="field">
+                <label for="cf-email">Correo electrónico</label>
+                <input id="cf-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="120" required aria-describedby="cf-email-err" placeholder="nombre@empresa.com">
+                <p class="field-error" id="cf-email-err" role="alert"></p>
+              </div>
+            </div>
+
+            <div class="form-grid two">
+              <div class="field">
+                <label for="cf-tel">Teléfono o WhatsApp <span class="opt">(opcional)</span></label>
+                <input id="cf-tel" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="cf-tel-err" placeholder="+54 9 11 ...">
+                <p class="field-error" id="cf-tel-err" role="alert"></p>
+              </div>
+              <div class="field">
+                <label for="cf-motivo">¿Sobre qué es tu consulta?</label>
+                <select id="cf-motivo" name="motivo" required aria-describedby="cf-motivo-err">
+                  <option value="">Elegí una opción</option>
+                  <option>Pedir una cotización</option>
+                  <option>Automatizaciones con IA</option>
+                  <option>Rediseño de procesos</option>
+                  <option>Herramientas a medida</option>
+                  <option>Aplicación web o PWA</option>
+                  <option>Integraciones</option>
+                  <option>Otra consulta</option>
+                </select>
+                <p class="field-error" id="cf-motivo-err" role="alert"></p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="cf-msg">Tu consulta o solicitud</label>
+              <textarea id="cf-msg" name="message" maxlength="2000" required aria-describedby="cf-msg-err cf-count" placeholder="Contanos qué necesitás, qué hacés hoy a mano y qué te gustaría resolver."></textarea>
+              <p class="field-error" id="cf-msg-err" role="alert"></p>
+              <p class="counter" id="cf-count" aria-live="off">0 / 2000</p>
+            </div>
+
+            <!-- Trampa para robots: las personas no lo ven ni lo completan -->
+            <div class="hp" aria-hidden="true">
+              <label for="cf-web">No completar este campo</label>
+              <input id="cf-web" name="_honey" type="text" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="field">
+              <label class="consent" for="cf-ok">
+                <input id="cf-ok" name="consent" type="checkbox" required aria-describedby="cf-ok-err">
+                <span>Acepto que usen estos datos para responder mi consulta.</span>
+              </label>
+              <p class="field-error" id="cf-ok-err" role="alert"></p>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top:22px">
+            <button class="btn btn-primary" id="cf-enviar" type="submit">Enviar consulta</button>
+          </div>
+          <p class="form-note">Respondemos por correo, en general dentro de uno o dos días hábiles. Tus datos se usan solo para contestarte.</p>
+          <div class="form-status err" id="cf-status" role="status" aria-live="polite" tabindex="-1"></div>
+        </form>
+
+        <div class="thanks" id="cf-thanks" role="status" aria-live="polite" tabindex="-1">
+          <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <h3>¡Gracias! Recibimos tu consulta</h3>
+          <p id="cf-thanks-txt">Te vamos a responder por correo a la brevedad.</p>
+          <button class="btn btn-ghost btn-sm" type="button" id="cf-otra">Enviar otra consulta</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto">
+    <div class="wrap">
+      <h2>Hablemos de tu proyecto</h2>
+      <p class="sub">Contame qué necesitás y te respondo con una cotización. Elegí el medio que te quede más cómodo.</p>
+      <div class="contact-grid">
+        <!-- AGENDA: reemplazar el valor de href por el enlace de la página de reservas de Google Calendar -->
+        <a class="contact-card primary" id="agendar" href="https://wa.me/5491173724119?text=Hola%2C%20quiero%20agendar%20una%20reuni%C3%B3n%20para%20cotizar%20un%20proyecto." target="_blank" rel="noopener">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></div>
+          <div><b>Agendar una llamada</b><span>Elegí día y horario para una reunión</span></div>
+        </a>
+        <a class="contact-card" href="https://wa.me/5491173724119?text=Hola%2C%20quiero%20pedir%20una%20cotizaci%C3%B3n." target="_blank" rel="noopener">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg></div>
+          <div><b>WhatsApp</b><span>+54 9 11 7372-4119</span></div>
+        </a>
+        <a class="contact-card" href="mailto:lmhapps2@gmail.com?subject=Consulta%20de%20cotizaci%C3%B3n&body=Hola%2C%20quiero%20cotizar%20un%20proyecto.%0A%0ANombre%3A%0AEmpresa%3A%0A%C2%BFQu%C3%A9%20necesito%3F%3A">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+          <div><b>Correo</b><span>lmhapps2@gmail.com</span></div>
+        </a>
+        <a class="contact-card" href="https://instagram.com/lmhapps" target="_blank" rel="noopener">
+          <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></div>
+          <div><b>Instagram</b><span>@lmhapps</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© <span id="y">2026</span> LMH Apps · Automatización y software a medida</span>
+    <span><a href="https://instagram.com/lmhapps" target="_blank" rel="noopener">@lmhapps</a> · <a href="mailto:lmhapps2@gmail.com">lmhapps2@gmail.com</a></span>
+  </div>
+</footer>
+
+<button class="snd" id="snd" type="button" aria-pressed="true" aria-label="Sonido de los recuadros de servicios">
+  <svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+  <svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+  <span id="sndTxt">Sonido</span>
+</button>
+
+<a class="wa-float" href="https://wa.me/5491173724119?text=Hola%2C%20quiero%20pedir%20una%20cotizaci%C3%B3n." target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>
+</a>
+
+<script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+<script>
+(function(){
+  var KEY='lmh-sound', on=true, ctx=null, unlocked=false;
+  try{ if(localStorage.getItem(KEY)==='off') on=false; }catch(e){}
+  var desktop=window.matchMedia('(hover:hover) and (min-width:900px)');
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)');
+  var btn=document.getElementById('snd'), txt=document.getElementById('sndTxt');
+  function paint(){ btn.setAttribute('aria-pressed',on); txt.textContent=on?'Sonido: sí':'Sonido: no'; }
+  paint();
+
+  // Los navegadores solo permiten sonido después de que la persona hizo clic, tocó o apretó una tecla.
+  function unlock(){
+    if(unlocked) return;
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      ctx=new AC(); if(ctx.state==='suspended') ctx.resume(); unlocked=true;
+    }catch(e){}
+  }
+  ['pointerdown','keydown','touchstart'].forEach(function(ev){ window.addEventListener(ev,unlock,{passive:true}); });
+
+  function tone(f1,f2,dur,vol){
+    if(!on||!ctx||ctx.state!=='running'||reduce.matches) return;
+    var t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(f1,t);
+    o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  function zoomIn(){ tone(620,980,0.09,0.07); setTimeout(function(){ tone(980,1240,0.07,0.04); },55); }
+  function zoomOut(){ tone(780,480,0.08,0.05); }
+
+  btn.addEventListener('click',function(){
+    on=!on; paint();
+    try{ localStorage.setItem(KEY,on?'on':'off'); }catch(e){}
+    if(on) zoomIn();
+  });
+
+  // Mismo retardo que el zoom en CSS (0.15 s): una pasada rápida no suena ni agranda.
+  document.querySelectorAll('#servicios .card').forEach(function(card){
+    var timer=null, leaveTimer=null, zoomed=false;
+    card.addEventListener('pointerenter',function(e){
+      if(e.pointerType!=='mouse'||!desktop.matches) return;
+      // Al agrandarse el recuadro, el navegador puede registrar una salida y entrada falsas casi juntas: se ignoran.
+      if(leaveTimer){ clearTimeout(leaveTimer); leaveTimer=null; return; }
+      timer=setTimeout(function(){ zoomed=true; zoomIn(); },150);
+    });
+    card.addEventListener('pointerleave',function(){
+      clearTimeout(timer);
+      leaveTimer=setTimeout(function(){
+        leaveTimer=null;
+        if(zoomed){ zoomed=false; zoomOut(); }
+      },80);
+    });
+  });
+})();
+</script>
+<script>
+(function(){
+  var DEST='https://formsubmit.co/ajax/lmhapps2@gmail.com';
+  var KEY='lmh-consulta-ts', MIN_MS=3000, ESPERA_MS=60000;
+  var form=document.getElementById('consultaForm'); if(!form) return;
+  var thanks=document.getElementById('cf-thanks'), thanksTxt=document.getElementById('cf-thanks-txt');
+  var status=document.getElementById('cf-status'), btn=document.getElementById('cf-enviar');
+  var msg=document.getElementById('cf-msg'), count=document.getElementById('cf-count');
+  var abierta=Date.now();
+
+  function $(id){ return document.getElementById(id); }
+  function err(id,texto){
+    var campo=$(id), p=$(id+'-err'); if(!p) return;
+    p.textContent=texto||'';
+    var inp = id==='cf-ok' ? $('cf-ok') : campo;
+    if(inp){ if(texto) inp.setAttribute('aria-invalid','true'); else inp.removeAttribute('aria-invalid'); }
+  }
+  function limpiar(){ ['cf-nombre','cf-email','cf-tel','cf-motivo','cf-msg','cf-ok'].forEach(function(i){ err(i,''); }); }
+
+  msg.addEventListener('input',function(){ count.textContent=msg.value.length+' / 2000'; });
+  ['cf-nombre','cf-email','cf-tel','cf-motivo','cf-msg','cf-ok'].forEach(function(id){
+    $(id).addEventListener('input',function(){ err(id,''); });
+    $(id).addEventListener('change',function(){ err(id,''); });
+  });
+
+  function validar(v){
+    var primero=null, ok=true;
+    function mal(id,t){ err(id,t); ok=false; if(!primero) primero=$(id); }
+    if(v.name.length<2) mal('cf-nombre','Escribí tu nombre.');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email)) mal('cf-email','Escribí un correo válido, por ejemplo nombre@empresa.com.');
+    if(v.phone && !/^[0-9+()\-\s]{6,30}$/.test(v.phone)) mal('cf-tel','Revisá el teléfono: solo números, espacios, + y guiones.');
+    if(!v.motivo) mal('cf-motivo','Elegí sobre qué es tu consulta.');
+    if(v.message.length<10) mal('cf-msg','Contanos un poco más (mínimo 10 caracteres).');
+    if(!$('cf-ok').checked) mal('cf-ok','Necesitamos tu aceptación para poder responderte.');
+    if(primero) primero.focus();
+    return ok;
+  }
+
+  function mostrarError(t){
+    status.innerHTML=t; status.classList.add('show'); status.focus();
+  }
+  function fallback(){
+    return 'No pudimos enviar tu consulta ahora. Probá de nuevo en unos minutos o escribinos a <a href="mailto:lmhapps2@gmail.com">lmhapps2@gmail.com</a> o por <a href="https://wa.me/5491173724119" target="_blank" rel="noopener">WhatsApp</a>.';
+  }
+  function exito(email){
+    form.style.display='none';
+    thanksTxt.textContent='Te vamos a responder a '+email+' a la brevedad.';
+    thanks.classList.add('show'); thanks.focus();
+  }
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    status.classList.remove('show'); status.textContent=''; limpiar();
+
+    var v={
+      name:$('cf-nombre').value.trim(), email:$('cf-email').value.trim(), phone:$('cf-tel').value.trim(),
+      motivo:$('cf-motivo').value, message:msg.value.trim()
+    };
+    if(!validar(v)) return;
+
+    // Anti-spam: campo trampa lleno o envío demasiado rápido = robot. Se simula éxito sin enviar.
+    if($('cf-web').value || Date.now()-abierta<MIN_MS){ exito(v.email); return; }
+
+    var ultimo=0; try{ ultimo=Number(localStorage.getItem(KEY))||0; }catch(x){}
+    if(Date.now()-ultimo<ESPERA_MS){ mostrarError('Ya enviaste una consulta hace un momento. Esperá un minuto antes de mandar otra.'); return; }
+
+    btn.disabled=true; var txt=btn.textContent; btn.textContent='Enviando…';
+    var ctrl=('AbortController' in window)?new AbortController():null;
+    var corte=setTimeout(function(){ if(ctrl) ctrl.abort(); },15000);
+
+    fetch(DEST,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        name:v.name, email:v.email, phone:v.phone||'(no indicó)', motivo:v.motivo, message:v.message,
+        _subject:'Nueva consulta web · '+v.motivo+' · '+v.name,
+        _template:'table', _captcha:'false'
+      }),
+      signal:ctrl?ctrl.signal:undefined
+    }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(d){ return {ok:r.ok,d:d}; });
+    }).then(function(x){
+      var bien = x.ok && (x.d.success===true || x.d.success==='true');
+      if(!bien) throw new Error('envio');
+      try{ localStorage.setItem(KEY,String(Date.now())); }catch(y){}
+      form.reset(); count.textContent='0 / 2000';
+      exito(v.email);
+    }).catch(function(){
+      mostrarError(fallback());
+    }).then(function(){
+      clearTimeout(corte); btn.disabled=false; btn.textContent=txt;
+    });
+  });
+
+  $('cf-otra').addEventListener('click',function(){
+    thanks.classList.remove('show'); form.style.display=''; abierta=Date.now();
+    $('cf-nombre').focus();
+  });
+})();
+</script>
+</body>
+</html>
