@@ -115,9 +115,17 @@ Invoke-Step "uv sync" { uv sync --extra desktop --extra voice }
 
 # Windows con Smart App Control bloquea el Python sin firmar que baja uv (falla _ctypes).
 Say "Verificando que Windows deje correr el Python del proyecto."
-$global:LASTEXITCODE = 0
-uv run python -c "import ctypes" 2>$null
-if ($LASTEXITCODE -ne 0) {
+function Test-PyCtypes {
+    # Con $ErrorActionPreference=Stop, el stderr de Python abortaría el script; lo bajamos a Continue.
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    uv run python -c "import ctypes" *> $null
+    $ok = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = $old
+    $global:LASTEXITCODE = 0
+    return $ok
+}
+if (-not (Test-PyCtypes)) {
     Warn "Windows bloqueó el Python de uv (Control de aplicaciones). Instalo Python 3.13 firmado de python.org y rehago el entorno."
     winget install -e --id Python.Python.3.13 --accept-package-agreements --accept-source-agreements
     Refresh-Path
@@ -126,9 +134,7 @@ if ($LASTEXITCODE -ne 0) {
     if (Test-Path ".venv") { Remove-Item ".venv" -Recurse -Force }
     $global:LASTEXITCODE = 0
     Invoke-Step "uv sync (Python del sistema)" { uv sync --extra desktop --extra voice }
-    $global:LASTEXITCODE = 0
-    uv run python -c "import ctypes" 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    if (-not (Test-PyCtypes)) {
         throw "Windows sigue bloqueando Python. Revisa Seguridad de Windows > Control de aplicaciones y navegador > Smart App Control. Si tu PC es de empresa, pide a TI que permita Python."
     }
 }
